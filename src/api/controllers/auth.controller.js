@@ -1,23 +1,35 @@
 const AuthService = require('../services/auth.service');
 
+// AuthController class to handle HTTP requests related to authentication
 class AuthController {
+  // Handles user registration requests
   static async register(req, res) {
     try {
+      // Call the service layer to register a new user with the request body data
       const user = await AuthService.registerUser(req.body);
+
+      // Respond with a success message and the newly created user data
       res.status(201).json({ message: 'User registered successfully', user });
     } catch (error) {
+      // Or an error (e.g. "database error" response with a 400 Bad Request error code
       res.status(400).json({ message: error.message });
     }
   }
 
+  // Handles user login requests
   static async login(req, res) {
     try {
+      // Call the service layer to authenticate the user and generate a token
       const token = await AuthService.loginUser(req.body);
+
+      // Respond with the generated token
       res.status(200).json({ token });
     } catch (error) {
+      // If authentication fails, respond with a 400 Bad Request and error message
       res.status(400).json({ message: error.message });
     }
   }
 }
 
+// Export the AuthController to be used in route definitions (e.g., auth.routes.js)
 module.exports = AuthController;

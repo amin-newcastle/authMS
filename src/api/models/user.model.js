@@ -1,15 +1,21 @@
+// Import mongoose library for MongoDB object modeling
 const mongoose = require('mongoose');
 
-const userSchema = new mongoose.Schema({
+// User schema for the users collection
+const UserSchema = new mongoose.Schema({
+  // Username: must be a required unique string
   username: {
     type: String,
     required: true,
     unique: true,
   },
+
+  // Password: required string (will store hashed password)
   password: {
     type: String,
     required: true,
   },
 });
 
-module.exports = mongoose.model('User', userSchema);
+// Export the User model based on the UserSchema to interact with the users collection
+module.exports = mongoose.model('User', UserSchema);
