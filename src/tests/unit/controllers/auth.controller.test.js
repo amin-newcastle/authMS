@@ -15,6 +15,7 @@ describe('AuthController', () => {
 
     expect(mockResponse.status).toHaveBeenCalledWith(201);
     expect(mockResponse.json).toHaveBeenCalledWith({
+      success: true,
       message: 'User registered successfully',
       user: mockUser,
     });
@@ -34,6 +35,7 @@ describe('AuthController', () => {
 
     expect(mockResponse.status).toHaveBeenCalledWith(400);
     expect(mockResponse.json).toHaveBeenCalledWith({
+      success: false,
       message: 'User already exists',
     });
   });
@@ -50,7 +52,10 @@ describe('AuthController', () => {
     await AuthController.login({ body: mockUser }, mockResponse);
 
     expect(mockResponse.status).toHaveBeenCalledWith(200);
-    expect(mockResponse.json).toHaveBeenCalledWith({ token: mockToken });
+    expect(mockResponse.json).toHaveBeenCalledWith({
+      success: true,
+      token: mockToken,
+    });
   });
 
   it('should return 400 if an error occurs during login', async () => {
@@ -67,6 +72,7 @@ describe('AuthController', () => {
 
     expect(mockResponse.status).toHaveBeenCalledWith(400);
     expect(mockResponse.json).toHaveBeenCalledWith({
+      success: false,
       message: 'Invalid username or password',
     });
   });
