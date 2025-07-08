@@ -15,7 +15,9 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  // ...other fields...
 });
 
-// Export the User model based on the UserSchema to interact with the users collection
-module.exports = mongoose.model('User', UserSchema);
+// Export a function to get the model, so it doesn't register on import
+module.exports = () =>
+  mongoose.models.User || mongoose.model('User', UserSchema);

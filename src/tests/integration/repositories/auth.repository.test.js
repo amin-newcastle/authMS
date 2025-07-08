@@ -1,68 +1,43 @@
-const mongoose = require('mongoose');
-const { MongoMemoryServer } = require('mongodb-memory-server');
 const AuthRepository = require('../../../api/repositories/auth.repository');
 const bcrypt = require('bcrypt');
-const User = require('../../../api/models/user.model');
+const getUserModel = require('../../../api/models/user.model');
 
-let mongoServer;
-
-// Set up in-memory MongoDB before all tests. This is used to isolate tests and avoid conflicts with the actual database.
-beforeAll(async () => {
-  mongoServer = await MongoMemoryServer.create();
-  const mongoUri = mongoServer.getUri();
-
-  // Disconnect any existing Mongoose connections
-  if (mongoose.connection.readyState !== 0) {
-    await mongoose.disconnect();
-  }
-
-  // Connect to the in-memory MongoDB
-  await mongoose.connect(mongoUri, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
-});
-
-// Clean up after all tests are done
-afterAll(async () => {
-  await mongoose.disconnect();
-  await mongoServer.stop();
+// Helper to generate user data with hashed password
+const generateUserData = async (
+  username = `testuser_${Date.now()}`,
+  password = 'password'
+) => ({
+  username,
+  password: await bcrypt.hash(password, 10),
 });
 
 describe('AuthRepository Integration Test', () => {
   // Clear the users collection before each test to ensure isolation
   beforeEach(async () => {
+    const User = getUserModel();
     await User.deleteMany({});
   });
 
   describe('createUser', () => {
     it('should create a new user in the DB', async () => {
       // Arrange: Prepare user data with a hashed password
-      const password = 'password';
-      const hashedPassword = await bcrypt.hash(password, 10);
-      const userData = {
-        username: `testuser_${Date.now()}`,
-        password: hashedPassword,
-      };
+      const userData = await generateUserData();
 
       // Act: Create the user using the repository
       const createdUser = await AuthRepository.createUser(userData);
 
       // Assert: Check that the user was created with the correct username and a hashed password
       expect(createdUser.username).toBe(userData.username);
-      expect(createdUser.password).not.toBe(password); // Ensure it's hashed
+      expect(createdUser.password).not.toBe('password'); // Ensure it's hashed
       // Extra: Check that the hash matches the original password
-      const isMatch = await bcrypt.compare(password, createdUser.password);
+      const isMatch = await bcrypt.compare('password', createdUser.password);
       expect(isMatch).toBe(true);
     });
     it('should throw an error if required fields are missing', async () => {
       await expect(AuthRepository.createUser({})).rejects.toThrow();
     });
     it('should not allow duplicate usernames', async () => {
-      const userData = {
-        username: 'duplicateUser',
-        password: await bcrypt.hash('password', 10),
-      };
+      const userData = await generateUserData('duplicateUser');
 
       await AuthRepository.createUser(userData);
       await expect(AuthRepository.createUser(userData)).rejects.toThrow();
@@ -72,10 +47,8 @@ describe('AuthRepository Integration Test', () => {
   describe('findUserByUsername', () => {
     it('should find a user by username in the DB', async () => {
       // Arrange: Create a user in the database
-      const password = 'password';
-      const hashedPassword = await bcrypt.hash(password, 10);
       const username = `testuser_${Date.now()}`;
-      const userData = { username, password: hashedPassword };
+      const userData = await generateUserData(username);
 
       const createdUser = await AuthRepository.createUser(userData);
 
@@ -86,7 +59,6 @@ describe('AuthRepository Integration Test', () => {
       expect(foundUser.username).toBe(username);
       expect(foundUser.password).toBe(createdUser.password);
     });
-
     it('should return null if user does not exist', async () => {
       const foundUser =
         await AuthRepository.findUserByUsername('nonexistentuser');

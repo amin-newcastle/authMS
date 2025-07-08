@@ -1,16 +1,18 @@
-// Import the User model which represents the users collection in the database
-const User = require('../models/user.model');
+// Import the function to get the User model which represents the users collection in the database
+const getUserModel = require('../models/user.model');
 
 // AuthRepository class has all database operations related to authentication
 class AuthRepository {
   // Find a user(document) by username
   static async findUserByUsername(username) {
+    const User = getUserModel();
     // Returns the user
     return await User.findOne({ username });
   }
 
   // Create and save a new user in the database
   static async createUser(userData) {
+    const User = getUserModel();
     // Create a new instance of the User model with the provided data
     const newUser = new User(userData);
 
