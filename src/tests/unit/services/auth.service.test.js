@@ -1,3 +1,7 @@
+jest.mock('../../../api/models/user.model', () => ({
+  create: jest.fn(),
+  findOne: jest.fn(),
+}));
 const AuthService = require('../../../api/services/auth.service');
 const AuthRepository = require('../../../api/repositories/auth.repository');
 const bcrypt = require('bcrypt');
