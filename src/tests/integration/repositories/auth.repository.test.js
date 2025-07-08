@@ -1,37 +1,11 @@
-const mongoose = require('mongoose');
-const { MongoMemoryServer } = require('mongodb-memory-server');
 const AuthRepository = require('../../../api/repositories/auth.repository');
 const bcrypt = require('bcrypt');
-const User = require('../../../api/models/user.model');
-
-let mongoServer;
-
-// Set up in-memory MongoDB before all tests. This is used to isolate tests and avoid conflicts with the actual database.
-beforeAll(async () => {
-  mongoServer = await MongoMemoryServer.create();
-  const mongoUri = mongoServer.getUri();
-
-  // Disconnect any existing Mongoose connections
-  if (mongoose.connection.readyState !== 0) {
-    await mongoose.disconnect();
-  }
-
-  // Connect to the in-memory MongoDB
-  await mongoose.connect(mongoUri, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
-});
-
-// Clean up after all tests are done
-afterAll(async () => {
-  await mongoose.disconnect();
-  await mongoServer.stop();
-});
+const getUserModel = require('../../../api/models/user.model');
 
 describe('AuthRepository Integration Test', () => {
   // Clear the users collection before each test to ensure isolation
   beforeEach(async () => {
+    const User = getUserModel();
     await User.deleteMany({});
   });
 
