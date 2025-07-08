@@ -10,16 +10,22 @@ jest.mock('../../../config/env', () => ({
 // Mock the repository
 jest.mock('../../../api/repositories/auth.repository');
 
+// Mock user data
+const mockUserData = require('../../mock-data/user/user.json');
+
+// Helper to generate a user with a hashed password
+const generateMockUser = async (password = 'correctpassword') => {
+  const hashedPassword = await bcrypt.hash(password, 10);
+  return { _id: '123', username: 'testuser', password: hashedPassword };
+};
+
 describe('AuthService', () => {
-  // Mock user data
-  const mockUserData = { username: 'testuser', password: 'password' };
   let mockUser;
 
   // Runs before each test to clear mocks and prepare fresh hashed password user
   beforeEach(async () => {
     jest.clearAllMocks();
-    const hashedPassword = await bcrypt.hash('correctpassword', 10);
-    mockUser = { _id: '123', username: 'testuser', password: hashedPassword };
+    mockUser = await generateMockUser();
   });
 
   describe('registration', () => {

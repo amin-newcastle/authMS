@@ -3,7 +3,7 @@ const AuthService = require('../services/auth.service');
 // AuthController class to handle HTTP requests related to authentication
 class AuthController {
   // @desc    Handles user registration requests
-  // @route   POST /api/vi/auth
+  // @route   POST /api/v1/auth
   // @access  public
   static async register(req, res) {
     try {
@@ -21,7 +21,7 @@ class AuthController {
   }
 
   // @desc    Handles user login requests
-  // @route   POST /api/vi/auth
+  // @route   POST /api/v1/auth
   // @access  private
   static async login(req, res) {
     try {
