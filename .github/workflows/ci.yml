@@ -1,0 +1,49 @@
+name: Release
+
+on:
+  # Trigger workflow on push to main branch
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the repository code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Set up Node.js environment
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # Install npm dependencies
+      - name: Install dependencies
+        run: npm ci
+
+      # Run standard-version to bump version and update CHANGELOG.md
+      - name: Run standard-version
+        run: npm run release
+
+      # Create a new branch for the changelog and version bump
+      - name: Create release branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b release-changelog
+          git add CHANGELOG.md package.json package-lock.json
+          git commit -m "chore(release): update changelog and version bump"
+          git push origin release-changelog
+
+      # Create a pull request to merge the changelog and version bump into main
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: release-changelog
+          title: "chore(release): update changelog and version bump"
+          body: "This PR was created automatically by GitHub Actions to update the changelog and version after a release."

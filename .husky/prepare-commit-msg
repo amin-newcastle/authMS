@@ -1,5 +1,2 @@
-#!/bin/sh
-. "$(dirname "$0")/_/husky.sh"
-
 # Run Commitizen instead of default editor
 exec < /dev/tty && npx cz --hook || true
