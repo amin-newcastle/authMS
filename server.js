@@ -17,10 +17,11 @@ connectDB();
 let PORT = process.env.PORT;
 
 // Only start the server if not in a test environment
+let server;
 if (process.env.NODE_ENV !== 'test') {
-  app.listen(PORT, () => {
+  server = app.listen(PORT, () => {
     console.log(
-      `Server running in ${process.env.NODE_ENV} mode on port ${PORT}`
+      `Server running in ${process.env.NODE_ENV} mode on port ${PORT}`,
     );
   });
 }
