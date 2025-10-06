@@ -18,7 +18,7 @@ app.get('/', (req, res) => {
 // Parses JSON bodies and attaches the result to req.body
 app.use(bodyParser.json());
 // Global error handler for HTTP request/response
-app.use((error, req, res, next) => {
+app.use((error, req, res) => {
   res.status(500).json({ message: error.message });
 });
 // Dev logger middleware for logging HTTP requests
