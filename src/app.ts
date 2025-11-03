@@ -1,9 +1,9 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const morgan = require('morgan');
+import bodyParser from 'body-parser';
+import express from 'express';
+import morgan from 'morgan';
 
 // Import route (Controller layer entry point)
-const authRoutes = require('./api/routes/auth.routes.js');
+import authRoutes from './api/routes/auth.routes.js';
 
 // Create an Express application instance
 const app = express();
@@ -30,4 +30,4 @@ if (process.env.NODE_ENV === 'development') {
 app.use('/api/v1/auth', authRoutes);
 
 // Export the configured app instance (to be used in the main server file or tests)
-module.exports = app;
+export default app;

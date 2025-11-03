@@ -1,5 +1,6 @@
-const express = require('express');
-const AuthController = require('../controllers/auth.controller');
+import express from 'express';
+
+import AuthController from '../controllers/auth.controller';
 
 const router = express.Router();
 
@@ -8,4 +9,4 @@ router.post('/register', AuthController.register);
 router.post('/login', AuthController.login);
 
 // Export the router so it can be used in app.js (e.g., mounted under /api/v1/auth)
-module.exports = router;
+export default router;

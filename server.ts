@@ -1,20 +1,20 @@
 // Runtime configuration (how the app runs)
 
 // Import the configured Express app instance (routes, middleware, etc.)
-const app = require('./src/app.js');
+import dotenv from 'dotenv';
 
+import app from './src/app.js';
 // Import the function that handles connecting to the database (Repository layer entry point)
-const connectDB = require('./src/config/db.connection.js');
+import connectDB from './src/config/db.connection.js';
 
 // Import and load environment variables
-const dotenv = require('dotenv');
 dotenv.config({ path: 'src/config/config.env' });
 
 // Connect to the database
 connectDB();
 
 // Get the port number from environment variables
-let PORT = process.env.PORT;
+const PORT = process.env.PORT;
 
 // Only start the server if not in a test environment
 let server;
@@ -34,4 +34,4 @@ process.on('unhandledRejection', (e) => {
 });
 
 // Export the app instance
-module.exports = app;
+export default server;

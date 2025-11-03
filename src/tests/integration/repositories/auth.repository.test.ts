@@ -1,11 +1,12 @@
-const AuthRepository = require('../../../api/repositories/auth.repository');
-const bcrypt = require('bcrypt');
-const getUserModel = require('../../../api/models/user.model');
+import bcrypt from 'bcrypt';
+
+import User from '../../../api/models/user.model.ts';
+import AuthRepository from '../../../api/repositories/auth.repository.ts';
 
 // Helper to generate user data with hashed password
 const generateUserData = async (
   username = `testuser_${Date.now()}`,
-  password = 'password'
+  password = 'password',
 ) => ({
   username,
   password: await bcrypt.hash(password, 10),
@@ -14,7 +15,6 @@ const generateUserData = async (
 describe('AuthRepository Integration Test', () => {
   // Clear the users collection before each test to ensure isolation
   beforeEach(async () => {
-    const User = getUserModel();
     await User.deleteMany({});
   });
 
