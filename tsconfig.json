@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "ESNext",
-    "moduleResolution": "Node",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "rootDir": "src",
     "outDir": "dist",
     "esModuleInterop": true,
@@ -11,6 +11,11 @@
     "strict": true,
     "skipLibCheck": true,
     "resolveJsonModule": true
+  },
+  "ts-node": {
+    "esm": true,
+    "transpileOnly": true,
+    "experimentalResolver": true
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "dist"]

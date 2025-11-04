@@ -1,16 +1,20 @@
-import dotenv from 'dotenv';
 import mongoose from 'mongoose';
-
-dotenv.config({ path: '../config/config.evn' });
+import config from './env.ts';
 
 const connectDB = async () => {
+  if (!config.dbUri) {
+    console.warn('DB_URI not set; skipping MongoDB connection');
+    return;
+  }
   try {
-    await mongoose.connect(process.env.DB_URI);
+    await mongoose.connect(config.dbUri as string);
     console.log('MongoDB connected');
-  } catch (err) {
-    console.error(err.message);
-    process.exit(1);
+  } catch (err: any) {
+    console.error('MongoDB connection error:', err?.message || err);
+    if (config.nodeEnv === 'production') {
+      process.exit(1);
+    }
   }
 };
 
-module.exports = connectDB;
+export default connectDB;

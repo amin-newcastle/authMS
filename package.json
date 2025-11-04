@@ -8,7 +8,7 @@
   "license": "MIT",
   "description": "",
   "scripts": {
-    "dev": "cross-env NODE_ENV=development nodemon --loader ts-node/esm src/server.ts",
+    "dev": "cross-env NODE_ENV=development nodemon --ext ts,js,mjs,cjs,json --watch src --exec node -- --no-warnings=ExperimentalWarning --loader ts-node/esm src/server.ts",
     "build": "tsc",
     "start": "cross-env NODE_ENV=production node dist/server.js",
     "test:unit": "cross-env NODE_ENV=test jest --selectProjects unit --coverage --detectOpenHandles",
