@@ -5,7 +5,7 @@ import app from './app.ts';
 // Import the function that handles connecting to the database (Repository layer entry point)
 import connectDB from './config/db.connection.ts';
 // Centralized env loader and config
-import config from './config/env.js';
+import config from './config/env.ts';
 
 // Connect to the database
 connectDB();

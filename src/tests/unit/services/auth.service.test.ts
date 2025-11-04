@@ -1,7 +1,4 @@
 import { jest, describe, it, expect, beforeEach } from '@jest/globals';
-import fs from 'fs';
-import path from 'path';
-import bcrypt from 'bcrypt';
 
 // Mock config and repository modules
 jest.mock('../../../config/env.ts', () => ({
@@ -18,24 +15,20 @@ jest.mock('../../../api/repositories/auth.repository.ts', () => ({
 
 import AuthService from '../../../api/services/auth.service.ts';
 import AuthRepository from '../../../api/repositories/auth.repository.ts';
+import { buildHashedUser, readUserFixture } from '../../utils/user.ts';
 
 // Mock user data
-const mockUserData = JSON.parse(
-  fs.readFileSync(path.resolve('src/tests/mock-data/user/user.json'), 'utf-8'),
-);
-
-// Helper to generate a user with a hashed password
-const generateMockUser = async (password = 'correctpassword') => {
-  const hashedPassword = await bcrypt.hash(password, 10);
-  return { _id: '123', username: 'testuser', password: hashedPassword };
-};
+const mockUserData = readUserFixture();
 
 describe('AuthService', () => {
   let mockUser;
 
   beforeEach(async () => {
     jest.clearAllMocks();
-    mockUser = await generateMockUser();
+    mockUser = await buildHashedUser({
+      includeId: true,
+      password: 'correctpassword',
+    });
   });
 
   describe('registration', () => {

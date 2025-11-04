@@ -10,7 +10,7 @@ import AuthRepository from '../repositories/auth.repository.ts';
 import { IUser } from '../models/user.model.ts';
 
 // AuthService class to contain the business logic for authentication
-export class AuthService {
+class AuthService {
   /**
    * Handles user registration logic.
    * @param userData - Object containing username and password

@@ -2,15 +2,7 @@ import bcrypt from 'bcrypt';
 
 import User from '../../../api/models/user.model.ts';
 import AuthRepository from '../../../api/repositories/auth.repository.ts';
-
-// Helper to generate user data with hashed password
-const generateUserData = async (
-  username = `testuser_${Date.now()}`,
-  password = 'password',
-) => ({
-  username,
-  password: await bcrypt.hash(password, 10),
-});
+import { buildHashedUser } from '../../utils/user.ts';
 
 describe('AuthRepository Integration Test', () => {
   // Clear the users collection before each test to ensure isolation
@@ -21,7 +13,9 @@ describe('AuthRepository Integration Test', () => {
   describe('createUser', () => {
     it('should create a new user in the DB', async () => {
       // Arrange: Prepare user data with a hashed password
-      const userData = await generateUserData();
+      const userData = await buildHashedUser({
+        username: `testuser_${Date.now()}`,
+      });
 
       // Act: Create the user using the repository
       const createdUser = await AuthRepository.createUser(userData);
@@ -37,7 +31,9 @@ describe('AuthRepository Integration Test', () => {
       await expect(AuthRepository.createUser({})).rejects.toThrow();
     });
     it('should not allow duplicate usernames', async () => {
-      const userData = await generateUserData('duplicateUser');
+      const userData = await buildHashedUser({
+        username: 'duplicateUser',
+      });
 
       await AuthRepository.createUser(userData);
       await expect(AuthRepository.createUser(userData)).rejects.toThrow();
@@ -48,7 +44,9 @@ describe('AuthRepository Integration Test', () => {
     it('should find a user by username in the DB', async () => {
       // Arrange: Create a user in the database
       const username = `testuser_${Date.now()}`;
-      const userData = await generateUserData(username);
+      const userData = await buildHashedUser({
+        username,
+      });
 
       const createdUser = await AuthRepository.createUser(userData);
 

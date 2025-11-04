@@ -1,4 +1,3 @@
-import bodyParser from 'body-parser';
 import express, {
   type NextFunction,
   type Request,
@@ -20,7 +19,7 @@ app.get('/', (req, res) => {
 // Middleware:
 
 // Parses JSON bodies and attaches the result to req.body
-app.use(bodyParser.json());
+app.use(express.json());
 // Dev logger middleware for logging HTTP requests
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
