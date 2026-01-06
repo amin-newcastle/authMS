@@ -1,9 +1,12 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const morgan = require('morgan');
+import express, {
+  type NextFunction,
+  type Request,
+  type Response,
+} from 'express';
+import morgan from 'morgan';
 
 // Import route (Controller layer entry point)
-const authRoutes = require('./api/routes/auth.routes.js');
+import authRoutes from './api/routes/auth.routes.ts';
 
 // Create an Express application instance
 const app = express();
@@ -16,11 +19,7 @@ app.get('/', (req, res) => {
 // Middleware:
 
 // Parses JSON bodies and attaches the result to req.body
-app.use(bodyParser.json());
-// Global error handler for HTTP request/response
-app.use((error, req, res) => {
-  res.status(500).json({ message: error.message });
-});
+app.use(express.json());
 // Dev logger middleware for logging HTTP requests
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
@@ -29,5 +28,12 @@ if (process.env.NODE_ENV === 'development') {
 // Mount Routes (entry point into the Controller layer)
 app.use('/api/v1/auth', authRoutes);
 
+// Global error handler for HTTP request/response
+app.use(
+  (err: Error, _req: Request, res: Response, _next: NextFunction): void => {
+    res.status(500).json({ message: err.message || 'Internal Server Error' });
+  },
+);
+
 // Export the configured app instance (to be used in the main server file or tests)
-module.exports = app;
+export default app;

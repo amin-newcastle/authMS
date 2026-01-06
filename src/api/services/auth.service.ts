@@ -1,18 +1,24 @@
-const AuthRepository = require('../repositories/auth.repository');
 // Import bcrypt for hashing and comparing passwords securely
-const bcrypt = require('bcrypt');
+import bcrypt from 'bcrypt';
 // Import jsonwebtoken for generating JWT tokens
-const jwt = require('jsonwebtoken');
+import jwt from 'jsonwebtoken';
 // Import app configuration values (e.g., JWT secret)
-const config = require('../../config/env');
+import config from '../../config/env.ts';
+// Import AuthRepository for data access
+import AuthRepository from '../repositories/auth.repository.ts';
+// Import the IUser interface for type safety
+import { IUser } from '../models/user.model.ts';
 
 // AuthService class to contain the business logic for authentication
 class AuthService {
-  // This function handles user registration logic
-  static async registerUser(userData) {
-    // 1st it Check if the user already exists by username preventing duplicate registrations
+  /**
+   * Handles user registration logic.
+   * @param userData - Object containing username and password
+   */
+  static async registerUser(userData: IUser): Promise<IUser> {
+    // 1st it checks if the user already exists by username preventing duplicate registrations
     const existingUser = await AuthRepository.findUserByUsername(
-      userData.username
+      userData.username,
     );
     if (existingUser) {
       throw new Error('User already exists');
@@ -28,12 +34,19 @@ class AuthService {
     return await AuthRepository.createUser(user);
   }
 
-  // Handles user login logic
-  static async loginUser(userData) {
+  /**
+   * Handles user login logic.
+   * @param userData - Object containing username and password
+   * @returns JWT token if login is successful
+   */
+  static async loginUser(userData: {
+    username: string;
+    password: string;
+  }): Promise<string> {
     // Find user by username
     const user = await AuthRepository.findUserByUsername(userData.username);
     if (!user) {
-      throw new Error('Invalid username or password'); // Avoiding revealing which part failed
+      throw new Error('Invalid username or password'); // Avoid revealing which part failed
     }
 
     // Compare the provided password with the stored password
@@ -53,4 +66,4 @@ class AuthService {
 }
 
 // Export the AuthService class for use in the controller
-module.exports = AuthService;
+export default AuthService;
