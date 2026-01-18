@@ -24,8 +24,10 @@ export default [
     '.DS_Store',
   ]),
 
+  // Configuration for TypeScript files
   {
-    // Tell import-plugin to ignore these “virtual” modules
+    files: ['**/*.ts', '**/*.tsx'],
+    // Tell import-plugin to ignore these "virtual" modules
     settings: {
       'import/core-modules': [
         'eslint/config',
@@ -101,6 +103,27 @@ export default [
       'jest/no-focused-tests': 'error',
       'jest/no-identical-title': 'error',
 
+      // ✅ Prettier for Formatting
+      'prettier/prettier': [
+        'error',
+        { singleQuote: true, semi: true, trailingComma: 'all' },
+      ],
+    },
+  },
+
+  // Configuration for JavaScript/MJS config files
+  {
+    files: ['**/*.js', '**/*.mjs', '**/*.cjs'],
+    languageOptions: {
+      ecmaVersion: 'latest',
+      sourceType: 'module',
+    },
+    plugins: {
+      prettier: prettierPlugin,
+    },
+    rules: {
+      'no-console': 'warn',
+      'prefer-const': 'warn',
       // ✅ Prettier for Formatting
       'prettier/prettier': [
         'error',

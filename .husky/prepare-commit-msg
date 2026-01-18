@@ -1,2 +1,3 @@
 # Run Commitizen instead of default editor
-exec < /dev/tty && npx cz --hook || true
+# Disabled on Windows due to /dev/tty compatibility issues
+# exec < /dev/tty && npx cz --hook || true

@@ -13,8 +13,8 @@ jest.mock('../../../api/repositories/auth.repository.ts', () => ({
   },
 }));
 
-import AuthService from '../../../api/services/auth.service.ts';
 import AuthRepository from '../../../api/repositories/auth.repository.ts';
+import AuthService from '../../../api/services/auth.service.ts';
 import { buildHashedUser, readUserFixture } from '../../utils/user.ts';
 
 // Mock user data
