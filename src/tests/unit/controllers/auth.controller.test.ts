@@ -1,6 +1,6 @@
 import { jest, describe, it, expect, beforeEach } from '@jest/globals';
-import httpMocks from 'node-mocks-http';
 import type { Request, Response } from 'express';
+import httpMocks from 'node-mocks-http';
 
 // Mock AuthService before importing controller
 jest.mock('../../../api/services/auth.service.ts', () => ({
@@ -11,11 +11,12 @@ jest.mock('../../../api/services/auth.service.ts', () => ({
   },
 }));
 
-import AuthService from '../../../api/services/auth.service.ts';
 import AuthController from '../../../api/controllers/auth.controller.ts';
+import AuthService from '../../../api/services/auth.service.ts';
 
 // Helper to create a mock response
-const createMockResponse = () => httpMocks.createResponse<Response>();
+const createMockResponse = (): httpMocks.MockResponse<Response> =>
+  httpMocks.createResponse<Response>();
 
 describe('AuthController', () => {
   beforeEach(() => {

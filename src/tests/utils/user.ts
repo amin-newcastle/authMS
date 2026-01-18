@@ -1,6 +1,7 @@
-import bcrypt from 'bcrypt';
 import fs from 'fs';
 import path from 'path';
+
+import bcrypt from 'bcrypt';
 
 type FixtureUser = {
   username: string;

@@ -2,12 +2,13 @@
 import bcrypt from 'bcrypt';
 // Import jsonwebtoken for generating JWT tokens
 import jwt from 'jsonwebtoken';
+
 // Import app configuration values (e.g., JWT secret)
 import config from '../../config/env.ts';
 // Import AuthRepository for data access
+import { IUser } from '../models/user.model.ts';
 import AuthRepository from '../repositories/auth.repository.ts';
 // Import the IUser interface for type safety
-import { IUser } from '../models/user.model.ts';
 
 // AuthService class to contain the business logic for authentication
 class AuthService {

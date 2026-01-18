@@ -1,5 +1,6 @@
-import AuthService from '../services/auth.service.ts';
 import { Request, Response } from 'express';
+
+import AuthService from '../services/auth.service.ts';
 
 /**
  * AuthController class to handle HTTP requests related to authentication.
