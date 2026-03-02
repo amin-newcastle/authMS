@@ -38,4 +38,4 @@ jobs:
 
       # Run security audit
       - name: Run npm audit
-        run: npm audit --audit-level
+        run: npm audit --audit-level=moderate
