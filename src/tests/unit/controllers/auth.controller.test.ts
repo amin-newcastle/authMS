@@ -66,6 +66,26 @@ describe('AuthController', () => {
       expect(data).toHaveProperty('message', 'User already exists');
       expect(data).toHaveProperty('success', false);
     });
+
+    it('should handle non-Error rejection on register', async () => {
+      const req = httpMocks.createRequest<Request>({
+        method: 'POST',
+        url: '/register',
+        body: { username: 'testuser', password: 'pwd' },
+      });
+      const res = createMockResponse();
+
+      (AuthService.registerUser as jest.Mock).mockRejectedValue('oops');
+
+      await AuthController.register(req, res);
+
+      expect(res.statusCode).toBe(400);
+      const data = res._getJSONData();
+      expect(data).toEqual({
+        success: false,
+        message: 'An unknown error occurred',
+      });
+    });
   });
 
   describe('login', () => {
@@ -105,6 +125,26 @@ describe('AuthController', () => {
       const data = res._getJSONData();
       expect(data).toHaveProperty('message', 'Invalid username or password');
       expect(data).toHaveProperty('success', false);
+    });
+
+    it('should handle non-Error rejection on login', async () => {
+      const req = httpMocks.createRequest<Request>({
+        method: 'POST',
+        url: '/login',
+        body: { username: 'testuser', password: 'pwd' },
+      });
+      const res = createMockResponse();
+
+      (AuthService.loginUser as jest.Mock).mockRejectedValue(42);
+
+      await AuthController.login(req, res);
+
+      expect(res.statusCode).toBe(400);
+      const data = res._getJSONData();
+      expect(data).toEqual({
+        success: false,
+        message: 'An unknown error occurred',
+      });
     });
   });
 });

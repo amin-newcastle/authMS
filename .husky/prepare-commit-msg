@@ -1,3 +1,23 @@
+#!/bin/sh
 # Run Commitizen instead of default editor
-# Disabled on Windows due to /dev/tty compatibility issues
-# exec < /dev/tty && npx cz --hook || true
+# Try to run `npx cz --hook` when `npx` is available.
+# If `npx` is not present, try local `node_modules/.bin/cz` or the
+# installed Commitizen binary. If none are present, exit successfully
+# so commits aren't blocked.
+if [ -e /dev/tty ]; then
+  # Use the controlling TTY so interactive prompts appear (Unix / Git Bash)
+  exec < /dev/tty && npx cz --hook || true
+elif command -v winpty >/dev/null 2>&1; then
+  # On some Windows environments, winpty provides a tty for interactive apps
+  winpty npx cz --hook || true
+elif command -v npx >/dev/null 2>&1; then
+  # Last-resort: run npx without explicit TTY (may be non-interactive)
+  npx cz --hook || true
+elif [ -x "./node_modules/.bin/cz" ]; then
+  ./node_modules/.bin/cz --hook || true
+elif [ -f "./node_modules/commitizen/bin/commitizen" ]; then
+  node ./node_modules/commitizen/bin/commitizen --hook || true
+else
+  # No commitizen available; continue without blocking commit
+  true
+fi
