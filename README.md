@@ -1,6 +1,6 @@
 # AuthMS
 
-Authentication Microservice for Node.js, Express, MongoDB, and JWT
+Authentication Microservice for Maktab Pro using Node.js, Express, MongoDB, and JWT
 
 ---
 
