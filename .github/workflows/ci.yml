@@ -9,6 +9,12 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
+    # supply environment variables from GitHub Secrets so tests run with real config
+    env:
+      NODE_ENV: test           # ensures dotenv won't try to load development file
+      DB_URI: ${{ secrets.DB_URI }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+
     steps:
       # Checkout the repository code
       - name: Checkout code
