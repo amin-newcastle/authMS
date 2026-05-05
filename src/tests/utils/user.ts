@@ -34,10 +34,5 @@ export const buildHashedUser = async (
     password: hashedPassword,
   };
 
-  return options.includeId
-    ? {
-        _id: options.id ?? '123',
-        ...user,
-      }
-    : user;
+  return options.includeId ? { ...user, _id: options.id ?? '123' } : user;
 };

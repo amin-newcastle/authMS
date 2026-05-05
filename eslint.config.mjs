@@ -34,6 +34,12 @@ export default [
         '@typescript-eslint/parser',
         '@typescript-eslint/eslint-plugin',
       ],
+      'import/resolver': {
+        typescript: {
+          alwaysTryTypes: true,
+          project: './tsconfig.eslint.json',
+        },
+      },
     },
     // your core JS/TS config
     languageOptions: {

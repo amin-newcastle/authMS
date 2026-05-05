@@ -6,7 +6,7 @@ import express, {
 import morgan from 'morgan';
 
 // Import route (Controller layer entry point)
-import authRoutes from './api/routes/auth.routes.ts';
+import authRoutes from './api/routes/auth.routes.js';
 
 // Create an Express application instance
 const app = express();

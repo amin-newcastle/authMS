@@ -4,13 +4,16 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
 // Import app configuration values (e.g., JWT secret)
-import config from '../../config/env.ts';
+import config from '../../config/env.js';
 // Import AuthRepository for data access
-import { IUser } from '../models/user.model.ts';
-import AuthRepository from '../repositories/auth.repository.ts';
+import { IUser } from '../models/user.model.js';
+import AuthRepository from '../repositories/auth.repository.js';
 // Import the IUser interface for type safety
 
-// AuthService class to contain the business logic for authentication
+const SALT_ROUNDS = 10;
+
+type LoginCredentials = { username: string; password: string };
+
 class AuthService {
   /**
    * Handles user registration logic.
@@ -26,13 +29,9 @@ class AuthService {
     }
 
     // Hash the user's password before storing it
-    const hashedPassword = await bcrypt.hash(userData.password, 10);
+    const hashedPassword = await bcrypt.hash(userData.password, SALT_ROUNDS);
 
-    // Create a new user object with the hashed password
-    const user = { ...userData, password: hashedPassword };
-
-    // Save the new user via the repository and return the result
-    return await AuthRepository.createUser(user);
+    return AuthRepository.createUser({ ...userData, password: hashedPassword });
   }
 
   /**
@@ -40,10 +39,7 @@ class AuthService {
    * @param userData - Object containing username and password
    * @returns JWT token if login is successful
    */
-  static async loginUser(userData: {
-    username: string;
-    password: string;
-  }): Promise<string> {
+  static async loginUser(userData: LoginCredentials): Promise<string> {
     // Find user by username
     const user = await AuthRepository.findUserByUsername(userData.username);
     if (!user) {

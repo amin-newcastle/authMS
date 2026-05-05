@@ -1,11 +1,11 @@
 // Runtime configuration (how the app runs)
 
 // Import the configured Express app instance (routes, middleware, etc.)
-import app from './app.ts';
+import app from './app.js';
 // Import the function that handles connecting to the database (Repository layer entry point)
-import connectDB from './config/db.connection.ts';
+import connectDB from './config/db.connection.js';
 // Centralized env loader and config
-import config from './config/env.ts';
+import config from './config/env.js';
 
 // Connect to the database
 connectDB();
@@ -14,7 +14,7 @@ connectDB();
 const PORT = config.port;
 
 // Only start the server if not in a test environment
-let server;
+let server: import('http').Server | undefined;
 if (process.env.NODE_ENV !== 'test') {
   server = app.listen(PORT, () => {
     console.log(`Server running in ${config.nodeEnv} mode on port ${PORT}`);

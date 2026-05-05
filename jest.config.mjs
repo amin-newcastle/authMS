@@ -6,9 +6,8 @@ export default {
   testEnvironment: 'node',
   moduleFileExtensions: ['ts', 'js', 'mjs', 'json'],
   transformIgnorePatterns: ['/node_modules/'],
-  resolver: 'jest-node-exports-resolver',
   moduleNameMapper: {
-    '^(\\.{1,2}/.*)\\.js$': '$1.ts',
+    '^(.*)\\.js$': '$1.ts',
   },
   projects: [
     {

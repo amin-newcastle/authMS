@@ -1,0 +1,102 @@
+# ============================================
+# DOCKER COMPOSE - ORCHESTRATION FILE
+# ============================================
+# Why: Running multiple containers together is tedious with plain docker commands
+# Docker Compose lets you define and run multi-container apps with one command
+
+services:
+  # "services" = containers I want to run
+  
+  # ============================================
+  # SERVICE 1: My AuthMS Application
+  # ============================================
+  authms:
+    build: .
+    # build: . = build Dockerfile in current directory
+    # Alternative: image: authms:latest (if image already built)
+    
+    ports:
+      - "5000:5000"
+    # Port mapping: "HOST:CONTAINER"
+    # 5000:5000 = map port 5000 on your computer to port 5000 in container
+    # Now you can access http://localhost:5000
+    
+    environment:
+      # Environment variables passed into the container
+      - NODE_ENV=production
+      - PORT=5000
+      - DB_URI=mongodb://mongo:27017/authms
+      # Notice "mongo" not "localhost"!
+      # Why? Docker creates a network where services can talk by service name
+      # "mongo" = the MongoDB service defined below
+      
+      - JWT_SECRET=${JWT_SECRET}
+      # ${JWT_SECRET} = read from my computer's environment variable
+      # I set this before running: $env:JWT_SECRET="mysecret" (Windows PowerShell)
+      # or export JWT_SECRET=mysecret (Linux/Mac)
+    
+    depends_on:
+      - mongo
+    # depends_on = start mongo service BEFORE authms
+    # Ensures MongoDB is running when your app tries to connect
+
+
+  # ============================================
+  # SERVICE 2: MongoDB Database
+  # ============================================
+  mongo:
+    image: mongo:7
+    # image = use pre-built image from Docker Hub
+    # mongo:7 = MongoDB version 7 official image
+    # No Dockerfile needed; just download and run
+    
+    ports:
+      - "27017:27017"
+    # Expose MongoDB port so you can connect with tools like MongoDB Compass
+    # Optional: remove this if you only want app to access it
+    
+    volumes:
+      - mongo_data:/data/db
+    # volumes = persist data even when container stops
+    # mongo_data = named volume (defined below)
+    # /data/db = where MongoDB stores data inside container
+    # 
+    # Without this: Data disappears when you stop the container!
+    # With this: Data survives container restarts
+
+
+# ============================================
+# VOLUMES - PERSISTENT STORAGE
+# ============================================
+volumes:
+  mongo_data:
+    # Define the named volume used above
+    # Docker manages where this is stored on your computer
+    # View with: docker volume ls
+    # Remove with: docker volume rm authms_mongo_data
+
+
+# ============================================
+# HOW IT ALL WORKS TOGETHER
+# ============================================
+# 1. You run: docker-compose up
+# 2. Docker creates a network for these services
+# 3. Docker starts mongo container
+# 4. Docker builds authms image from Dockerfile
+# 5. Docker starts authms container
+# 6. authms connects to mongo using "mongodb://mongo:27017"
+# 7. Both services can talk to each other by name
+# 8. You access the app at http://localhost:5000
+
+
+# ============================================
+# COMMON COMMANDS
+# ============================================
+# docker-compose up          → Start all services (attached to terminal)
+# docker-compose up -d       → Start in background (detached)
+# docker-compose up --build  → Rebuild images before starting
+# docker-compose down        → Stop and remove containers
+# docker-compose logs        → View logs from all services
+# docker-compose logs authms → View logs from specific service
+# docker-compose ps          → List running services
+# docker-compose exec authms sh → Open shell inside authms container

@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it } from '@jest/globals';
 import bcrypt from 'bcrypt';
 
 import User from '../../../api/models/user.model.ts';
@@ -54,13 +55,44 @@ describe('AuthRepository Integration Test', () => {
       const foundUser = await AuthRepository.findUserByUsername(username);
 
       // Assert: Check that the found user matches the created user
-      expect(foundUser.username).toBe(username);
-      expect(foundUser.password).toBe(createdUser.password);
+      expect(foundUser).not.toBeNull();
+      expect(foundUser!.username).toBe(username);
+      expect(foundUser!.password).toBe(createdUser.password);
     });
     it('should return null if user does not exist', async () => {
       const foundUser =
         await AuthRepository.findUserByUsername('nonexistentuser');
       expect(foundUser).toBeNull();
+    });
+  });
+
+  describe('buildHashedUser helper', () => {
+    it('should preserve provided username and password values when options are supplied', async () => {
+      const result = await buildHashedUser({
+        username: 'customUser',
+        password: 'customPass',
+        includeId: true,
+        id: 'custom-id',
+      });
+
+      expect(result.username).toBe('customUser');
+      expect(result.password).not.toBe('customPass');
+      expect(result).toHaveProperty('_id', 'custom-id');
+    });
+
+    it('should return default _id when includeId is true and id is not provided', async () => {
+      const result = await buildHashedUser({ includeId: true });
+
+      expect(result).toHaveProperty('_id', '123');
+      expect(result.username).toBeDefined();
+      expect(result.password).toBeDefined();
+    });
+
+    it('should use fixture defaults when called without options', async () => {
+      const result = await buildHashedUser();
+      expect(result).not.toHaveProperty('_id');
+      expect(result.username).toBeDefined();
+      expect(result.password).toBeDefined();
     });
   });
 });
