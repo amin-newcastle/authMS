@@ -1,17 +1,15 @@
-// Import bcrypt for hashing and comparing passwords securely
 import bcrypt from 'bcrypt';
-// Import jsonwebtoken for generating JWT tokens
 import jwt from 'jsonwebtoken';
 
-// Import app configuration values (e.g., JWT secret)
 import config from '../../config/env.js';
-// Import AuthRepository for data access
 import { IUser } from '../models/user.model.js';
 import AuthRepository from '../repositories/auth.repository.js';
-// Import the IUser interface for type safety
 
+// Number of salt rounds for bcrypt hashing.
+// Higher = more secure but slower. 10 is the industry standard for a good security/performance balance.
 const SALT_ROUNDS = 10;
 
+// Type for login input — only the fields needed to authenticate, not the full IUser document
 type LoginCredentials = { username: string; password: string };
 
 class AuthService {
