@@ -4,46 +4,11 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### 1.0.2 (2026-05-06)
 
-
 ### Bug Fixes
 
 * resolve ESLint errors and warnings ([139e059](https://github.com/amin-newcastle/authMS/commit/139e059e12a1005029bc2d55833f1071a8489992))
 
-## 1.3.0 (2026-05-05)
-
-
-### Features
-
-* **issue-0001:** containerisation, verify jwt, fix tests and linting ([89fded9](https://github.com/amin-newcastle/authMS/commit/89fded9aea77410363fcc4c4549b3206c9a70057))
-
-
-### Bug Fixes
-
-* resolve ESLint errors and warnings ([139e059](https://github.com/amin-newcastle/authMS/commit/139e059e12a1005029bc2d55833f1071a8489992))
-
-## 1.2.0 (2026-05-05)
-
-
-### Features
-
-* **issue-0001:** containerisation, verify jwt, fix tests and linting ([89fded9](https://github.com/amin-newcastle/authMS/commit/89fded9aea77410363fcc4c4549b3206c9a70057))
-
-
-### Bug Fixes
-
-* resolve ESLint errors and warnings ([139e059](https://github.com/amin-newcastle/authMS/commit/139e059e12a1005029bc2d55833f1071a8489992))
-
-## 1.1.0 (2026-05-05)
-
-
-### Features
-
-* **issue-0001:** containerisation, verify jwt, fix tests and linting ([89fded9](https://github.com/amin-newcastle/authMS/commit/89fded9aea77410363fcc4c4549b3206c9a70057))
-
-
-### Bug Fixes
-
-* resolve ESLint errors and warnings ([139e059](https://github.com/amin-newcastle/authMS/commit/139e059e12a1005029bc2d55833f1071a8489992))
+---
 
 ## [1.0.1] - 2026-03-03
 
