@@ -4,20 +4,15 @@ import jwt from 'jsonwebtoken';
 import config from '../../config/env.js';
 import AuthService from '../services/auth.service.js';
 
-// Extracts a readable error message from any thrown value.
-// JavaScript allows throwing anything (strings, numbers, objects), not just Error instances,
-// so we narrow the type before reading .message to avoid a runtime crash.
+// Safely extracts error message from any thrown value (Error, string, number, etc.)
 const getErrorMessage = (error: unknown): string =>
   error instanceof Error ? error.message : 'An unknown error occurred';
 
-// Extracts the JWT token from the incoming request.
-// Supports two locations:
-//   1. Authorization header: "Bearer <token>" (standard for API clients)
-//   2. Request body: { token: "<token>" } (fallback for clients that can't set headers)
+// Extracts JWT from Authorization header ("Bearer <token>") or request body
 const extractToken = (req: Request): string | undefined => {
   const authHeader = req.headers.authorization ?? '';
   return authHeader.startsWith('Bearer ')
-    ? authHeader.slice(7) // Strip the "Bearer " prefix to get the raw token
+    ? authHeader.slice(7)
     : req.body.token;
 };
 
@@ -70,8 +65,7 @@ class AuthController {
         return;
       }
 
-      // jwt.verify is synchronous — it throws if the token is expired or tampered with
-      // The decoded payload contains the data we signed in (e.g. { id: user._id })
+      // Verify token (throws if expired/tampered) and return decoded payload
       const decoded = jwt.verify(token, config.jwtSecret);
       res.status(200).json({ success: true, decoded });
     } catch (error: unknown) {

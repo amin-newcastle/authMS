@@ -5,8 +5,7 @@ import config from '../../config/env.js';
 import { IUser } from '../models/user.model.js';
 import AuthRepository from '../repositories/auth.repository.js';
 
-// Number of salt rounds for bcrypt hashing.
-// Higher = more secure but slower. 10 is the industry standard for a good security/performance balance.
+// Bcrypt salt rounds: 10 is the industry standard (secure + performant)
 const SALT_ROUNDS = 10;
 
 // Type for login input — only the fields needed to authenticate, not the full IUser document

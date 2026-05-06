@@ -2,9 +2,7 @@ import express from 'express';
 
 import AuthController from '../controllers/auth.controller.js';
 
-// Express Router groups related routes together.
-// This router handles all auth routes and is mounted under /api/v1/auth in app.ts,
-// so the full paths become: /api/v1/auth/register, /api/v1/auth/login, /api/v1/auth/verify
+// Router mounted under /api/v1/auth in app.ts — full paths: /register, /login, /verify
 const router = express.Router();
 
 // POST routes mapped to the methods in the AuthController

@@ -21,8 +21,7 @@ if (process.env.NODE_ENV !== 'test') {
   });
 }
 
-// Handle any unhandled promise rejections globally (e.g., failed async operations or DB fails to connect)
-// Ensures that the process exits gracefully with a meaningful error message
+// Handle unhandled promise rejections — log the error and shut down gracefully
 process.on('unhandledRejection', (e: unknown) => {
   console.log(`Error: ${(e as Error)?.message || e}`);
   server?.close(() => process.exit(1));
