@@ -1,11 +1,21 @@
 import { Request, Response } from 'express';
+import jwt from 'jsonwebtoken';
 
-import AuthService from '../services/auth.service.ts';
+import config from '../../config/env.js';
+import AuthService from '../services/auth.service.js';
 
-/**
- * AuthController class to handle HTTP requests related to authentication.
- * It communicates with the AuthService to perform the main authentication logic.
- */
+// Safely extracts error message from any thrown value (Error, string, number, etc.)
+const getErrorMessage = (error: unknown): string =>
+  error instanceof Error ? error.message : 'An unknown error occurred';
+
+// Extracts JWT from Authorization header ("Bearer <token>") or request body
+const extractToken = (req: Request): string | undefined => {
+  const authHeader = req.headers.authorization ?? '';
+  return authHeader.startsWith('Bearer ')
+    ? authHeader.slice(7)
+    : req.body.token;
+};
+
 class AuthController {
   /**
    * @desc    Handles user registration requests
@@ -22,14 +32,7 @@ class AuthController {
         .status(201)
         .json({ success: true, message: 'User registered successfully', user });
     } catch (error: unknown) {
-      // Safely handle errors by narrowing the type of `error`
-      if (error instanceof Error) {
-        res.status(400).json({ success: false, message: error.message });
-      } else {
-        res
-          .status(400)
-          .json({ success: false, message: 'An unknown error occurred' });
-      }
+      res.status(400).json({ success: false, message: getErrorMessage(error) });
     }
   }
 
@@ -40,20 +43,33 @@ class AuthController {
    */
   static async login(req: Request, res: Response): Promise<void> {
     try {
-      // Call the service layer to authenticate the user and generate a token
+      // Call the service layer to authenticate the user and return a signed JWT
       const token = await AuthService.loginUser(req.body);
-
-      // Respond with the generated token
       res.status(200).json({ success: true, token });
     } catch (error: unknown) {
-      // Safely handle errors by narrowing the type of `error`
-      if (error instanceof Error) {
-        res.status(400).json({ success: false, message: error.message });
-      } else {
-        res
-          .status(400)
-          .json({ success: false, message: 'An unknown error occurred' });
+      res.status(400).json({ success: false, message: getErrorMessage(error) });
+    }
+  }
+
+  /**
+   * @desc    Verifies a JWT token
+   * @route   POST /api/v1/auth/verify
+   * @access  Public
+   */
+  static async verify(req: Request, res: Response): Promise<void> {
+    try {
+      const token = extractToken(req);
+
+      if (!token) {
+        res.status(400).json({ success: false, message: 'Token is required' });
+        return;
       }
+
+      // Verify token (throws if expired/tampered) and return decoded payload
+      const decoded = jwt.verify(token, config.jwtSecret);
+      res.status(200).json({ success: true, decoded });
+    } catch (error: unknown) {
+      res.status(401).json({ success: false, message: getErrorMessage(error) });
     }
   }
 }

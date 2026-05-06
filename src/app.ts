@@ -5,13 +5,12 @@ import express, {
 } from 'express';
 import morgan from 'morgan';
 
-// Import route (Controller layer entry point)
-import authRoutes from './api/routes/auth.routes.ts';
+import authRoutes from './api/routes/auth.routes.js'; // Import route (Controller layer entry point)
 
 // Create an Express application instance
 const app = express();
 
-// Define a basic health check or landing route
+// Health check route — confirms server is up without hitting auth logic
 app.get('/', (req, res) => {
   res.send('Hello world!');
 });
@@ -28,7 +27,8 @@ if (process.env.NODE_ENV === 'development') {
 // Mount Routes (entry point into the Controller layer)
 app.use('/api/v1/auth', authRoutes);
 
-// Global error handler for HTTP request/response
+// Global error handler (4 params = error handler in Express)
+// Catches any error passed via next(err) — _req and _next are intentionally unused
 app.use(
   (err: Error, _req: Request, res: Response, _next: NextFunction): void => {
     res.status(500).json({ message: err.message || 'Internal Server Error' });

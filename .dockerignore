@@ -1,0 +1,32 @@
+node_modules
+# node_modules aren't needed in production
+
+npm-debug.log
+# Debug logs aren't needed in production
+
+dist
+# Don't copy old compiled code
+# We compile fresh inside the container with "npm run build"
+
+coverage
+# Test coverage reports aren't needed in production
+
+.git
+# Git history is huge and unnecessary
+
+.env*
+# CRITICAL: Don't copy environment files with secrets!
+# Secrets should come from environment variables, not files in the image
+
+!.env.example
+# Exception: DO include .env.example (it has no real secrets)
+# The ! means "don't ignore this one"
+
+*.md
+# Documentation files (README, CHANGELOG) not needed at runtime
+
+.husky
+# Git hooks aren't needed in production
+
+.github
+# GitHub Actions workflows aren't needed in production

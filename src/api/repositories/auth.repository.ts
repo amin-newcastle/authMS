@@ -1,5 +1,5 @@
 // Import the User model which represents the users collection in the database
-import User, { IUser } from '../models/user.model.ts';
+import User, { IUser } from '../models/user.model.js';
 
 // AuthRepository class has all database operations related to authentication
 class AuthRepository {
@@ -10,7 +10,7 @@ class AuthRepository {
    */
   static async findUserByUsername(username: string): Promise<IUser | null> {
     // Returns the user
-    return await User.findOne({ username });
+    return User.findOne({ username });
   }
 
   /**
@@ -23,7 +23,7 @@ class AuthRepository {
     const newUser = new User(userData);
 
     // Save the new user to the database and return the saved document
-    return await newUser.save();
+    return newUser.save();
   }
 }
 

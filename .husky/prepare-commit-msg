@@ -1,23 +1,22 @@
 #!/bin/sh
-# Run Commitizen instead of default editor
-# Try to run `npx cz --hook` when `npx` is available.
-# If `npx` is not present, try local `node_modules/.bin/cz` or the
-# installed Commitizen binary. If none are present, exit successfully
-# so commits aren't blocked.
-if [ -e /dev/tty ]; then
-  # Use the controlling TTY so interactive prompts appear (Unix / Git Bash)
-  exec < /dev/tty && npx cz --hook || true
+# Run Commitizen instead of default editor.
+# Skip if a commit message is already provided (e.g. standard-version, --message flag)
+# $2 is the commit source: 'message', 'template', 'merge', 'squash', 'commit'
+# If it is set, a message already exists so we don't need Commitizen.
+if [ -n "$2" ]; then
+  exit 0
+fi
+
+if [ -e /dev/tty ] && exec < /dev/tty 2>/dev/null; then
+  npx cz --hook || true
 elif command -v winpty >/dev/null 2>&1; then
-  # On some Windows environments, winpty provides a tty for interactive apps
   winpty npx cz --hook || true
 elif command -v npx >/dev/null 2>&1; then
-  # Last-resort: run npx without explicit TTY (may be non-interactive)
   npx cz --hook || true
 elif [ -x "./node_modules/.bin/cz" ]; then
   ./node_modules/.bin/cz --hook || true
 elif [ -f "./node_modules/commitizen/bin/commitizen" ]; then
   node ./node_modules/commitizen/bin/commitizen --hook || true
 else
-  # No commitizen available; continue without blocking commit
   true
 fi

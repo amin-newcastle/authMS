@@ -39,6 +39,40 @@ Authentication Microservice for Maktab Pro using Node.js, Express, MongoDB, and 
 npm install
 ```
 
+### Configuration for CI & Production
+
+This service reads all of its configuration from environment variables (see
+`src/config/env.ts`). **Do not** store real credentials in the repository.
+Use the following patterns instead:
+
+1. **GitHub Actions / CI** – create repository secrets in Settings → Secrets
+   (e.g. `DB_URI` and `JWT_SECRET`) and reference them in `.github/workflows/ci.yml`:
+
+   ```yaml
+   env:
+     NODE_ENV: test
+     DB_URI: ${{ secrets.DB_URI }}
+     JWT_SECRET: ${{ secrets.JWT_SECRET }}
+   ```
+
+   Secrets are encrypted and never appear in the commit history. The workflow
+   above already includes these entries, so just add the values in the web UI.
+
+2. **Production / deployment platform** – configure environment variables in
+   whatever system runs the service (Heroku config vars, AWS ECS task definition,
+   Docker Compose `environment` or `env_file`, Kubernetes `Secret`, etc.).
+   The application code does the same thing regardless of where the variables come
+   from; `dotenv` only attempts to load a `.env.production` file if
+   `NODE_ENV=production`, but you can omit the file completely.
+
+You can always inspect which variables are being loaded by running the helper
+script:
+
+```sh
+npm run load-env          # shows values from .env.development by default
+NODE_ENV=production npm run load-env  # simulate production
+```
+
 ### Environment Variables
 
 Create a `.env` file or configure `config/env.js` with:
