@@ -1,16 +1,13 @@
 // Runtime configuration (how the app runs)
 
-// Import the configured Express app instance (routes, middleware, etc.)
-import app from './app.js';
-// Import the function that handles connecting to the database (Repository layer entry point)
-import connectDB from './config/db.connection.js';
-// Centralized env loader and config
-import config from './config/env.js';
+import app from './app.js'; // Import the configured Express app instance (routes, middleware, etc.)
+import connectDB from './config/db.connection.js'; // Import the function that handles connecting to the database (Repository layer entry point)
+import config from './config/env.js'; // Centralized env loader and config
 
 // Connect to the database
 connectDB();
 
-// Get the port number from centralized config (with sane defaults)
+// Get the port number from centralised config (with sane defaults)
 const PORT = config.port;
 
 // Only start the server if not in a test environment
