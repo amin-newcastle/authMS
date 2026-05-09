@@ -14,7 +14,8 @@ coverage
 .git
 # Git history is huge and unnecessary
 
-.env*
+.env
+.env.*
 # CRITICAL: Don't copy environment files with secrets!
 # Secrets should come from environment variables, not files in the image
 
