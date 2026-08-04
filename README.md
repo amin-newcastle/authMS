@@ -228,7 +228,7 @@ See [API Reference](docs/api/reference.md) and [OpenAPI Specification](docs/api/
 | `npm run lint`             | Run ESLint                                           |
 | `npm run lint:fix`         | Run ESLint with automatic fixes                      |
 | `npm run format`           | Format project files with Prettier                   |
-| `npm run load-env`         | Print resolved environment configuration             |
+| `npm run load-env`         | Print masked environment configuration               |
 | `npm run release`          | Generate a standard-version release                  |
 
 ## Testing
@@ -270,6 +270,7 @@ See [SECURITY.md](SECURITY.md) for vulnerability reporting and secret-handling g
 - [OpenAPI Specification](docs/api/openapi.yaml)
 - [Database Collections](docs/database/collections.md)
 - [Docker Guide](docs/development/docker.md)
+- [Continuous Integration](docs/development/ci.md)
 - [Testing Strategy](docs/development/testing.md)
 - [Release Process](docs/development/release-process.md)
 - [Security Design](docs/security/overview.md)
