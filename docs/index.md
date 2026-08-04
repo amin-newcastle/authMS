@@ -7,6 +7,7 @@ AuthMS is the authentication microservice for Maktab Pro. It provides user regis
 - [Architecture overview](architecture/overview.md)
 - [API reference](api/reference.md)
 - [Database collections](database/collections.md)
+- [Contributing workflow](development/contributing.md)
 - [Docker development](development/docker.md)
 - [Testing strategy](development/testing.md)
 - [Continuous integration](development/ci.md)
@@ -70,7 +71,7 @@ The machine-readable API contract is maintained in `api/openapi.yaml`.
 
 Developers should use feature branches and submit changes through pull requests into `main`. The CI quality gate validates linting, compilation, tests, dependency security and the Docker build before changes can be merged.
 
-See the [continuous integration guide](development/ci.md) for details.
+See the [contributing workflow](development/contributing.md) and [continuous integration guide](development/ci.md) for details.
 
 ## Security
 
