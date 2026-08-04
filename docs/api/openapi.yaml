@@ -1,0 +1,191 @@
+openapi: 3.0.3
+info:
+  title: AuthMS API
+  version: 1.0.2
+  description: Authentication API for Maktab Pro.
+servers:
+  - url: http://localhost:5000
+    description: Local Docker development
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: Service is available.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+  /:
+    get:
+      summary: Local smoke test
+      responses:
+        '200':
+          description: Plain text smoke-test response.
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Hello world!
+  /api/v1/auth/register:
+    post:
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Credentials'
+      responses:
+        '201':
+          description: User registered successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterSuccess'
+        '400':
+          description: Invalid request or duplicate username.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/auth/login:
+    post:
+      summary: Authenticate a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Credentials'
+      responses:
+        '200':
+          description: Login succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginSuccess'
+        '400':
+          description: Invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/auth/verify:
+    post:
+      summary: Verify a JWT
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Token is valid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VerifySuccess'
+        '401':
+          description: Token is missing, invalid, or expired.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Credentials:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          example: demo-user
+        password:
+          type: string
+          format: password
+          example: StrongPassword123
+    PublicUser:
+      type: object
+      required:
+        - _id
+        - username
+      properties:
+        _id:
+          type: string
+          example: 66b0f0000000000000000000
+        username:
+          type: string
+          example: demo-user
+    HealthResponse:
+      type: object
+      required:
+        - status
+        - service
+      properties:
+        status:
+          type: string
+          example: ok
+        service:
+          type: string
+          example: authms
+    RegisterSuccess:
+      type: object
+      required:
+        - success
+        - message
+        - user
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: User registered successfully
+        user:
+          $ref: '#/components/schemas/PublicUser'
+    LoginSuccess:
+      type: object
+      required:
+        - success
+        - token
+      properties:
+        success:
+          type: boolean
+          example: true
+        token:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+    VerifySuccess:
+      type: object
+      required:
+        - success
+        - decoded
+      properties:
+        success:
+          type: boolean
+          example: true
+        decoded:
+          type: object
+          additionalProperties: true
+          example:
+            id: 66b0f0000000000000000000
+            iat: 1780000000
+            exp: 1780003600
+    ErrorResponse:
+      type: object
+      required:
+        - success
+        - message
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: Invalid username or password

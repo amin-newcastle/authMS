@@ -61,8 +61,9 @@ describe('AuthController', () => {
       const res = createMockResponse();
       mockedAuthService.registerUser.mockResolvedValue({
         username: 'testuser',
+        password: '$2b$10$hashed',
         _id: '123',
-      } as any);
+      } as unknown as Awaited<ReturnType<typeof AuthService.registerUser>>);
 
       // Act
       await AuthController.register(req, res);
@@ -74,6 +75,7 @@ describe('AuthController', () => {
       expect(data).toHaveProperty('message', 'User registered successfully');
       expect(data).toHaveProperty('user');
       expect(data.user).toMatchObject({ username: 'testuser', _id: '123' });
+      expect(data.user).not.toHaveProperty('password');
     });
 
     it('should return 400 when user already exists', async () => {
@@ -214,7 +216,7 @@ describe('AuthController', () => {
       });
     });
 
-    it('should return 200 and decoded payload from request body token', async () => {
+    it('should not accept a token from the request body', async () => {
       // Arrange
       const req = httpMocks.createRequest<Request>({
         method: 'POST',
@@ -222,24 +224,20 @@ describe('AuthController', () => {
         body: { token: 'body.token' },
       });
       const res = createMockResponse();
-      mockedJwtVerify.mockReturnValue({ id: '456' });
 
       // Act
       await AuthController.verify(req, res);
 
       // Assert
-      expect(mockedJwtVerify).toHaveBeenCalledWith(
-        'body.token',
-        expect.any(String),
-      );
-      expect(res.statusCode).toBe(200);
+      expect(mockedJwtVerify).not.toHaveBeenCalled();
+      expect(res.statusCode).toBe(401);
       expect(res._getJSONData()).toEqual({
-        success: true,
-        decoded: { id: '456' },
+        success: false,
+        message: 'Token is required',
       });
     });
 
-    it('should return 400 when token is missing', async () => {
+    it('should return 401 when token is missing', async () => {
       // Arrange
       const req = httpMocks.createRequest<Request>({
         method: 'POST',
@@ -252,7 +250,7 @@ describe('AuthController', () => {
       await AuthController.verify(req, res);
 
       // Assert
-      expect(res.statusCode).toBe(400);
+      expect(res.statusCode).toBe(401);
       expect(res._getJSONData()).toEqual({
         success: false,
         message: 'Token is required',
