@@ -48,7 +48,7 @@ jobs:
         run: npm ci
 
       - name: Install documentation dependencies
-        run: python -m pip install -r requirements-docs.txt        
+        run: python -m pip install -r requirements-docs.txt
 
       - name: Run lint
         run: npm run lint
@@ -68,9 +68,6 @@ jobs:
       # Critical vulnerabilities should block merges; lower severities are reviewed separately.
       - name: Audit critical vulnerabilities
         run: npm audit --audit-level=critical
-
-      - name: Build documentation
-        run: docker run --rm -v "${{ github.workspace }}:/docs" squidfunk/mkdocs-material:9 build --strict
 
       - name: Build Docker image
         run: docker compose build

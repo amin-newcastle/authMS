@@ -1,1 +1,1 @@
-requirements-docs.txt
+mkdocs-material>=9,<10

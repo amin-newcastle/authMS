@@ -20,10 +20,16 @@ Branch protection or a GitHub repository ruleset must separately require the `CI
 
 ## Quality Gate
 
-The CI job runs on Ubuntu with Node.js 22 and installs dependencies with:
+The CI job runs on Ubuntu with Node.js 22 and Python 3.13. Application dependencies are installed with:
 
 ```bash
 npm ci
+```
+
+Documentation dependencies are installed with:
+
+```bash
+python -m pip install -r requirements-docs.txt
 ```
 
 Checks run in this order:
@@ -31,6 +37,7 @@ Checks run in this order:
 ```bash
 npm run lint
 npm run build
+mkdocs build --strict
 npm run test:unit
 npm run test:integration
 npm audit --audit-level=critical
@@ -54,3 +61,7 @@ The integration tests use `mongodb-memory-server`, so they do not require a real
 ## Docker Build
 
 The Docker build validates that the production image can be built from the current source. The Compose stack receives the CI-only JWT placeholder through the workflow environment so no real runtime secret is required.
+
+## Documentation Build
+
+The documentation check validates the MkDocs site with strict mode. Broken links, missing navigation entries, or invalid MkDocs configuration should fail CI before merge.
