@@ -228,7 +228,7 @@ See [API Reference](docs/api/reference.md) and [OpenAPI Specification](docs/api/
 | `npm run lint`             | Run ESLint                                           |
 | `npm run lint:fix`         | Run ESLint with automatic fixes                      |
 | `npm run format`           | Format project files with Prettier                   |
-| `npm run load-env`         | Print resolved environment configuration             |
+| `npm run load-env`         | Print masked environment configuration               |
 | `npm run release`          | Generate a standard-version release                  |
 
 ## Testing

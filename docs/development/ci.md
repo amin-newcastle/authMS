@@ -16,7 +16,7 @@ CI runs on:
 
 Runs for the same branch or pull request are grouped with concurrency, so an older run is cancelled when a newer commit is pushed.
 
-Branch protection or a GitHub repository ruleset must separately require this CI status check before merging. The workflow reports the check result, but repository settings decide whether a failing check blocks the merge button.
+Branch protection or a GitHub repository ruleset must separately require the `CI / CI quality gate` status check before merging. The workflow reports the check result, but repository settings decide whether a failing check blocks the merge button.
 
 ## Quality Gate
 

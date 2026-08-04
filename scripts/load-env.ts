@@ -17,7 +17,26 @@ if (result.error) {
 
 console.log(`Loaded environment variables from .env.${env}`);
 console.log('Current variables:');
-// print only a whitelist so we don't accidentally log secrets
-['NODE_ENV', 'PORT', 'DB_URI', 'JWT_SECRET'].forEach((key) => {
-  console.log(`${key}=${process.env[key]}`);
+
+const formatValue = (key: string, value: string | undefined): string => {
+  if (!value) {
+    return '<not set>';
+  }
+
+  if (key === 'DB_URI' || key === 'JWT_SECRET') {
+    return '<set>';
+  }
+
+  return value;
+};
+
+const variables = [
+  { key: 'NODE_ENV', value: process.env.NODE_ENV },
+  { key: 'PORT', value: process.env.PORT },
+  { key: 'DB_URI', value: process.env.DB_URI },
+  { key: 'JWT_SECRET', value: process.env.JWT_SECRET },
+];
+
+variables.forEach(({ key, value }) => {
+  console.log(`${key}=${formatValue(key, value)}`);
 });
