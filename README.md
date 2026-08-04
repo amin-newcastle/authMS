@@ -270,6 +270,7 @@ See [SECURITY.md](SECURITY.md) for vulnerability reporting and secret-handling g
 - [OpenAPI Specification](docs/api/openapi.yaml)
 - [Database Collections](docs/database/collections.md)
 - [Docker Guide](docs/development/docker.md)
+- [Continuous Integration](docs/development/ci.md)
 - [Testing Strategy](docs/development/testing.md)
 - [Release Process](docs/development/release-process.md)
 - [Security Design](docs/security/overview.md)

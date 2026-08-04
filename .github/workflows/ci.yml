@@ -1,47 +1,60 @@
 name: CI
 
 on:
+  pull_request:
+    branches:
+      - main
   push:
     branches:
-      - '**' # Run on any branch
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  build-and-test:
+  quality-gate:
+    name: Pull request quality gate
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
-    # supply environment variables from GitHub Secrets so tests run with real config
     env:
-      NODE_ENV: test           # ensures dotenv won't try to load development file
-      DB_URI: ${{ secrets.DB_URI }}
-      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      NODE_ENV: test
+      DB_URI: mongodb://127.0.0.1:27017/authms_test
+      JWT_SECRET: test-only-ci-secret-that-is-never-used-in-production
 
     steps:
-      # Checkout the repository code
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Set up Node.js environment
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+          cache: npm
 
-      # Install npm dependencies
       - name: Install dependencies
-        run: npm ci --legacy-peer-deps
+        run: npm ci
 
-      # Run lint checks
-      - name: Run ESLint
+      - name: Run lint
         run: npm run lint
 
-      # Run unit tests
+      - name: Build TypeScript
+        run: npm run build
+
       - name: Run unit tests
         run: npm run test:unit
 
-      # Run integration tests
       - name: Run integration tests
         run: npm run test:integration
 
-      # Run security audit (only fail on critical vulnerabilities)
-      - name: Run npm audit
-        run: npm audit --audit-level=critical || true
+      - name: Build Docker image
+        run: docker compose build
+
+      # Critical vulnerabilities should block merges; lower severities are reviewed separately.
+      - name: Audit critical vulnerabilities
+        run: npm audit --audit-level=critical
