@@ -2,19 +2,25 @@ import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 
 import config from '../../config/env.js';
+import { IUser } from '../models/user.model.js';
 import AuthService from '../services/auth.service.js';
 
 // Safely extracts error message from any thrown value (Error, string, number, etc.)
 const getErrorMessage = (error: unknown): string =>
   error instanceof Error ? error.message : 'An unknown error occurred';
 
-// Extracts JWT from Authorization header ("Bearer <token>") or request body
+// Extracts JWT from the standard Authorization header ("Bearer <token>")
 const extractToken = (req: Request): string | undefined => {
   const authHeader = req.headers.authorization ?? '';
-  return authHeader.startsWith('Bearer ')
-    ? authHeader.slice(7)
-    : req.body.token;
+  return authHeader.startsWith('Bearer ') ? authHeader.slice(7) : undefined;
 };
+
+const toPublicUser = (
+  user: Pick<IUser, '_id' | 'username'>,
+): { _id: string; username: string } => ({
+  _id: String(user._id),
+  username: user.username,
+});
 
 class AuthController {
   /**
@@ -28,9 +34,11 @@ class AuthController {
       const user = await AuthService.registerUser(req.body);
 
       // Respond with a success message and the newly created user data
-      res
-        .status(201)
-        .json({ success: true, message: 'User registered successfully', user });
+      res.status(201).json({
+        success: true,
+        message: 'User registered successfully',
+        user: toPublicUser(user),
+      });
     } catch (error: unknown) {
       res.status(400).json({ success: false, message: getErrorMessage(error) });
     }
@@ -61,7 +69,7 @@ class AuthController {
       const token = extractToken(req);
 
       if (!token) {
-        res.status(400).json({ success: false, message: 'Token is required' });
+        res.status(401).json({ success: false, message: 'Token is required' });
         return;
       }
 
