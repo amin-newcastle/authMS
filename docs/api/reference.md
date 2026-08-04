@@ -127,7 +127,19 @@ Invalid credentials response:
 
 ```http
 POST /api/v1/auth/verify
-Authorization: Bearer <token>
+Content-Type: Headers
+```
+
+Header:
+
+```text
+Authorization
+```
+
+Value:
+
+```text
+Bearer <token>
 ```
 
 Success response:
