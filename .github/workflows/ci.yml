@@ -37,14 +37,27 @@ jobs:
           node-version: '22'
           cache: npm
 
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+          cache: pip
+          cache-dependency-path: requirements-docs.txt
+
       - name: Install dependencies
         run: npm ci
+
+      - name: Install documentation dependencies
+        run: python -m pip install -r requirements-docs.txt
 
       - name: Run lint
         run: npm run lint
 
       - name: Build TypeScript
         run: npm run build
+
+      - name: Validate documentation
+        run: mkdocs build --strict
 
       - name: Run unit tests
         run: npm run test:unit
