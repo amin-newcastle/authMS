@@ -265,6 +265,7 @@ See [SECURITY.md](SECURITY.md) for vulnerability reporting and secret-handling g
 
 ## Further Documentation
 
+- [Contributing Guide](CONTRIBUTING.md)
 - [Architecture Overview](docs/architecture/overview.md)
 - [API Reference](docs/api/reference.md)
 - [OpenAPI Specification](docs/api/openapi.yaml)
