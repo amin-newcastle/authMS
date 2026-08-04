@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.1.0](https://github.com/amin-newcastle/authMS/compare/v1.0.2...v1.1.0) (2026-08-04)
+
+### Features
+
+- add `/health` monitoring endpoint for service readiness checks ([5dc3163](https://github.com/amin-newcastle/authMS/commit/5dc3163f04e7f1d3afe51d12d5d82920edba81b9))
+
 ### 1.0.2 (2026-05-06)
 
 ### Features
