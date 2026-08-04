@@ -11,10 +11,12 @@ AuthMS uses GitHub Actions as a pull-request quality gate. The workflow lives at
 CI runs on:
 
 - Pull requests targeting `main`
-- Pushes to `main`
+- Changes pushed or merged into `main`
 - Manual runs from the GitHub Actions tab
 
 Runs for the same branch or pull request are grouped with concurrency, so an older run is cancelled when a newer commit is pushed.
+
+Branch protection or a GitHub repository ruleset must separately require this CI status check before merging. The workflow reports the check result, but repository settings decide whether a failing check blocks the merge button.
 
 ## Quality Gate
 
@@ -31,8 +33,8 @@ npm run lint
 npm run build
 npm run test:unit
 npm run test:integration
-docker compose build
 npm audit --audit-level=critical
+docker compose build
 ```
 
 The audit step fails CI only for critical vulnerabilities. Lower-severity findings should still be reviewed, but they do not block the pull-request gate by default.

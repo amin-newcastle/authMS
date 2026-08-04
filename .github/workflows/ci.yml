@@ -18,7 +18,7 @@ concurrency:
 
 jobs:
   quality-gate:
-    name: Pull request quality gate
+    name: CI quality gate
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -52,9 +52,9 @@ jobs:
       - name: Run integration tests
         run: npm run test:integration
 
-      - name: Build Docker image
-        run: docker compose build
-
       # Critical vulnerabilities should block merges; lower severities are reviewed separately.
       - name: Audit critical vulnerabilities
         run: npm audit --audit-level=critical
+
+      - name: Build Docker image
+        run: docker compose build
