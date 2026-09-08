@@ -42,7 +42,11 @@ markdown_extensions:
   - attr_list
   - md_in_html
   - pymdownx.details
-  - pymdownx.superfences
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
   - toc:
       permalink: true
 
@@ -51,6 +55,8 @@ nav:
 
   - Architecture:
       - Overview: architecture/overview.md
+      - Authentication Flows: architecture/authentication-flows.md
+      - Deployment: architecture/deployment.md
 
   - API:
       - Guide: api/reference.md
