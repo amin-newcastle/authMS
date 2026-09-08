@@ -56,6 +56,9 @@ jobs:
       - name: Build TypeScript
         run: npm run build
 
+      - name: Validate OpenAPI specification
+        run: python -m openapi_spec_validator docs/api/openapi.yaml
+
       - name: Validate documentation
         run: mkdocs build --strict
 

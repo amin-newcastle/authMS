@@ -5,7 +5,8 @@ AuthMS is the authentication microservice for Maktab Pro. It provides user regis
 ## Start here
 
 - [Architecture overview](architecture/overview.md)
-- [API reference](api/reference.md)
+- [API guide](api/reference.md)
+- [Interactive API reference](api/swagger.md)
 - [Database collections](database/collections.md)
 - [Contributing workflow](development/contributing.md)
 - [Docker development](development/docker.md)
@@ -63,9 +64,9 @@ The HTTP API includes:
 - Bearer-token verification
 - Service health checks
 
-See the [API reference](api/reference.md) for request and response examples.
+See the [API guide](api/reference.md) for request and response examples, or explore the [interactive API reference](api/swagger.md).
 
-The machine-readable API contract is maintained in `api/openapi.yaml`.
+The machine-readable API contract is maintained in [api/openapi.yaml](api/openapi.yaml).
 
 ## Development
 
