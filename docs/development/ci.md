@@ -37,6 +37,7 @@ Checks run in this order:
 ```bash
 npm run lint
 npm run build
+python -m openapi_spec_validator docs/api/openapi.yaml
 mkdocs build --strict
 npm run test:unit
 npm run test:integration
@@ -64,4 +65,8 @@ The Docker build validates that the production image can be built from the curre
 
 ## Documentation Build
 
+The OpenAPI check uses `openapi-spec-validator`, installed with the documentation dependencies, to reject invalid YAML, invalid OpenAPI structure, and broken schema references in `docs/api/openapi.yaml`.
+
 The documentation check validates the MkDocs site with strict mode. Broken links, missing navigation entries, or invalid MkDocs configuration should fail CI before merge.
+
+The `swagger-ui-tag` plugin renders the interactive API reference from that same specification and bundles Swagger UI assets into the static site. The documentation publishing workflow installs the same dependencies and runs the same strict build before uploading `site/` to GitHub Pages.

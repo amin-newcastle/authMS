@@ -24,7 +24,7 @@ paths:
         '200':
           description: Plain text smoke-test response.
           content:
-            text/plain:
+            text/html:
               schema:
                 type: string
                 example: Hello world!
@@ -50,6 +50,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/ServerError'
   /api/v1/auth/login:
     post:
       summary: Authenticate a user
@@ -67,11 +69,13 @@ paths:
               schema:
                 $ref: '#/components/schemas/LoginSuccess'
         '400':
-          description: Invalid credentials.
+          description: Invalid request or credentials.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/ServerError'
   /api/v1/auth/verify:
     post:
       summary: Verify a JWT
@@ -90,7 +94,22 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/ServerError'
 components:
+  responses:
+    ServerError:
+      description: Unexpected server error, including malformed JSON rejected before the controller.
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - message
+            properties:
+              message:
+                type: string
+                example: Internal Server Error
   securitySchemes:
     bearerAuth:
       type: http
@@ -160,6 +179,7 @@ components:
           example: true
         token:
           type: string
+          description: Signed JWT containing the user ID, issued at login with a one-hour expiry.
           example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
     VerifySuccess:
       type: object
@@ -171,8 +191,10 @@ components:
           type: boolean
           example: true
         decoded:
-          type: object
-          additionalProperties: true
+          oneOf:
+            - type: object
+              additionalProperties: true
+            - type: string
           example:
             id: 66b0f0000000000000000000
             iat: 1780000000

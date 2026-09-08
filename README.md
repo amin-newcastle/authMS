@@ -14,6 +14,7 @@ The service is written in TypeScript, runs on Node.js, exposes an Express API, a
 - [Environment Variables](#environment-variables)
 - [Quick Start With Docker](#quick-start-with-docker)
 - [Local Development](#local-development)
+- [Returning After a Break](#returning-after-a-break)
 - [API Summary](#api-summary)
 - [Scripts](#scripts)
 - [Testing](#testing)
@@ -187,6 +188,26 @@ npm run build
 npm start
 ```
 
+## Returning After a Break
+
+When using MongoDB Atlas, run through this checklist before starting development:
+
+1. **Check the cluster.** Sign in to [MongoDB Atlas](https://cloud.mongodb.com/), select the project, and resume the development cluster if it is paused. Wait until it is running.
+2. **Check network access.** In the project's Network Access IP access list, add your current public IP if it has changed. Wait until the entry is active. If using a VPN, use the IP for that connection.
+3. **Check saved credentials.** Keep the database username and password in a password manager under a recognisable name such as `Maktab Pro - AuthMS - Atlas development`, along with the Atlas project and cluster names. The database user is separate from your Atlas login. If the password is lost, reset it in Atlas Database Access and update your local connection string.
+4. **Check `.env.development`.** `npm run dev` loads this file, not `.env`. Ensure `DB_URI` contains the cluster's connection string and database credentials. Percent-encode special characters in the username and password (for example, `@` becomes `%40`). Keep real credentials and connection strings out of this README and Git.
+5. **Start the service.** Run `npm run dev` and look for `MongoDB connected`. The `Server running` message alone does not confirm a database connection. After editing `.env.development`, stop the process with Ctrl+C and run it again; Nodemon only watches `src`.
+
+Quick troubleshooting:
+
+| Error                              | First checks                                                                                                                                             |
+| ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `querySrv ENOTFOUND`               | Check cluster status and compare the URI hostname with Atlas's current connection string; check DNS if it still fails.                                   |
+| `TLSV1_ALERT_INTERNAL_ERROR`       | Check the project's IP access list and VPN connection first. This error alone does not prove an access-list issue.                                       |
+| `bad auth : authentication failed` | Check the database username, password, URI encoding, and authentication database. Reset the database password if needed, then update `.env.development`. |
+
+For development using a local MongoDB container, follow [Quick Start With Docker](#quick-start-with-docker).
+
 ## API Summary
 
 Base URL:
@@ -268,6 +289,7 @@ See [SECURITY.md](SECURITY.md) for vulnerability reporting and secret-handling g
 - [Contributing Guide](CONTRIBUTING.md)
 - [Architecture Overview](docs/architecture/overview.md)
 - [API Reference](docs/api/reference.md)
+- [Interactive API Reference](https://amin-newcastle.github.io/authMS/api/swagger/)
 - [OpenAPI Specification](docs/api/openapi.yaml)
 - [Database Collections](docs/database/collections.md)
 - [Docker Guide](docs/development/docker.md)

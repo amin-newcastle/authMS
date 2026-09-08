@@ -33,6 +33,9 @@ theme:
 
 plugins:
   - search
+  - swagger-ui-tag:
+      supportedSubmitMethods: []
+      validatorUrl: none
 
 markdown_extensions:
   - admonition
@@ -50,7 +53,8 @@ nav:
       - Overview: architecture/overview.md
 
   - API:
-      - Reference: api/reference.md
+      - Guide: api/reference.md
+      - Interactive API: api/swagger.md
 
   - Database:
       - Collections: database/collections.md

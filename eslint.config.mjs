@@ -19,6 +19,7 @@ export default [
     'build/',
     'coverage/',
     'docs/',
+    'site/',
     '*.log',
     'npm-debug.log*',
     '.DS_Store',
