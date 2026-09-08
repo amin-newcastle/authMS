@@ -55,6 +55,8 @@ Client
 
 This separation keeps HTTP handling, authentication logic and persistence concerns independently testable.
 
+See [authentication flows](architecture/authentication-flows.md) for request lifecycles and [deployment architecture](architecture/deployment.md) for current environments and the proposed production topology.
+
 ## API
 
 The HTTP API includes:
