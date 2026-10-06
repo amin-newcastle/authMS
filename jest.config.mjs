@@ -1,4 +1,5 @@
-export default {
+// Each Jest project needs these settings explicitly; root settings are not inherited.
+const projectConfig = {
   transform: {
     '^.+\\.(ts|tsx|js|jsx|mjs)$': 'babel-jest',
   },
@@ -7,18 +8,21 @@ export default {
   moduleFileExtensions: ['ts', 'js', 'mjs', 'json'],
   transformIgnorePatterns: ['/node_modules/'],
   moduleNameMapper: {
-    '^(.*)\\.js$': '$1.ts',
+    '^(\\.{1,2}/.*)\\.js$': '$1',
   },
+};
+
+export default {
   projects: [
     {
+      ...projectConfig,
       displayName: 'unit',
       testMatch: ['<rootDir>/src/tests/unit/**/*.test.*'],
-      extensionsToTreatAsEsm: ['.ts'],
     },
     {
+      ...projectConfig,
       displayName: 'integration',
       testMatch: ['<rootDir>/src/tests/integration/**/*.test.*'],
-      extensionsToTreatAsEsm: ['.ts'],
       setupFilesAfterEnv: ['<rootDir>/src/tests/integration/setup.mjs'],
     },
   ],

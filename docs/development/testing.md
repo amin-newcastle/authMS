@@ -42,6 +42,10 @@ src/tests/integration
 
 The integration setup uses `mongodb-memory-server`, so repository and HTTP route tests run against an in-memory MongoDB instance instead of the Docker Compose database. The route tests cover registration, persisted password hashes, login, token verification, normalized duplicate usernames, and existing credentials.
 
+The setup provides a fixed test-only JWT secret before importing the application. You do not need to configure `JWT_SECRET` or create `.env.test` to run the integration tests.
+
+The first run needs internet access to download MongoDB and can take several minutes. Database setup has a longer timeout for this; later runs reuse the downloaded binary.
+
 ## Testing Priorities
 
 High-value behavior to keep covered:
