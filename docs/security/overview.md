@@ -5,6 +5,7 @@ AuthMS handles sensitive authentication data, so security decisions should be ex
 ## Current Controls
 
 - Passwords are hashed with bcrypt before persistence.
+- Registration and login bodies are validated with Zod before controllers run; errors omit submitted values.
 - Login errors use a generic `Invalid username or password` message.
 - JWTs are signed with `JWT_SECRET`.
 - JWT verification rejects missing, invalid, and expired tokens.
@@ -22,6 +23,8 @@ AuthMS handles sensitive authentication data, so security decisions should be ex
 ## Password Handling
 
 - Store only bcrypt hashes.
+- Registration passwords must contain 8–72 characters and no more than 72 UTF-8 bytes, matching bcrypt's input limit.
+- Preserve passwords exactly; validation never trims them.
 - Never log plain text passwords.
 - Never return password hashes to clients.
 - Treat password reset and account recovery flows as separate security-sensitive features.
@@ -43,6 +46,5 @@ Before production use, add or verify:
 - Account lockout or throttling
 - Security headers
 - Centralized audit logging
-- Request validation
 - Sanitized error handling
 - Dependency vulnerability review

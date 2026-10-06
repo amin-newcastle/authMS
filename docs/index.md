@@ -20,6 +20,7 @@ AuthMS is the authentication microservice for Maktab Pro. It provides user regis
 AuthMS is responsible for:
 
 - Registering users
+- Validating registration and login input before business logic
 - Hashing passwords before persistence
 - Authenticating credentials
 - Issuing signed JSON Web Tokens
@@ -47,6 +48,7 @@ AuthMS follows a controller-service-repository structure:
 ```text
 Client
   → Express route
+  → Zod body validation (registration and login)
   → Controller
   → Service
   → Repository

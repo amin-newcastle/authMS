@@ -36,7 +36,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Credentials'
+              $ref: '#/components/schemas/RegistrationInput'
       responses:
         '201':
           description: User registered successfully.
@@ -49,7 +49,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                oneOf:
+                  - $ref: '#/components/schemas/ValidationErrorResponse'
+                  - $ref: '#/components/schemas/ErrorResponse'
         '500':
           $ref: '#/components/responses/ServerError'
   /api/v1/auth/login:
@@ -60,7 +62,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Credentials'
+              $ref: '#/components/schemas/LoginInput'
       responses:
         '200':
           description: Login succeeded.
@@ -73,7 +75,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                oneOf:
+                  - $ref: '#/components/schemas/ValidationErrorResponse'
+                  - $ref: '#/components/schemas/ErrorResponse'
         '500':
           $ref: '#/components/responses/ServerError'
   /api/v1/auth/verify:
@@ -82,6 +86,12 @@ paths:
       security:
         - bearerAuth: []
       responses:
+        '400':
+          description: Malformed JSON in an optional request body.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
         '200':
           description: Token is valid.
           content:
@@ -99,7 +109,7 @@ paths:
 components:
   responses:
     ServerError:
-      description: Unexpected server error, including malformed JSON rejected before the controller.
+      description: Unexpected server error. Malformed JSON returns a validation error with HTTP 400.
       content:
         application/json:
           schema:
@@ -116,18 +126,44 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
-    Credentials:
+    RegistrationInput:
       type: object
+      description: Validated before the controller. Unknown properties are removed from the parsed body. String lengths count Unicode code points.
       required:
         - username
         - password
       properties:
         username:
           type: string
+          minLength: 3
+          maxLength: 32
+          description: Trimmed before validation and storage. Length limits apply after trimming. Username must be unique and is case-sensitive.
           example: demo-user
         password:
           type: string
           format: password
+          minLength: 8
+          maxLength: 72
+          description: Preserved exactly without trimming. Must also be no more than 72 UTF-8 bytes for bcrypt; multi-byte characters can exceed that limit before reaching 72 characters.
+          example: StrongPassword123
+    LoginInput:
+      type: object
+      description: Validated before the controller. Unknown properties are removed from the parsed body. Registration length limits do not apply to existing credentials.
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          minLength: 1
+          pattern: '\S'
+          description: Must contain a non-whitespace character. Preserved exactly without trimming; use the stored, case-sensitive username.
+          example: demo-user
+        password:
+          type: string
+          format: password
+          minLength: 1
+          description: Non-empty and preserved exactly without trimming.
           example: StrongPassword123
     PublicUser:
       type: object
@@ -201,6 +237,7 @@ components:
             exp: 1780003600
     ErrorResponse:
       type: object
+      additionalProperties: false
       required:
         - success
         - message
@@ -211,3 +248,36 @@ components:
         message:
           type: string
           example: Invalid username or password
+    ValidationErrorResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - success
+        - message
+        - errors
+      properties:
+        success:
+          type: boolean
+          enum: [false]
+        message:
+          type: string
+          enum: [Invalid request body]
+        errors:
+          type: array
+          minItems: 1
+          description: Rule failures without submitted values.
+          items:
+            type: object
+            additionalProperties: false
+            required:
+              - field
+              - message
+            properties:
+              field:
+                type: string
+                enum: [username, password, body]
+              message:
+                type: string
+          example:
+            - field: body
+              message: Request body must be a valid JSON object

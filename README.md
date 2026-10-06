@@ -26,6 +26,7 @@ The service is written in TypeScript, runs on Node.js, exposes an Express API, a
 
 - User registration with bcrypt password hashing
 - User login with JWT generation
+- Zod request validation before registration and login controllers
 - JWT verification endpoint for service-to-service auth checks
 - MongoDB persistence with Mongoose
 - Docker Compose stack for local runtime verification
@@ -41,6 +42,7 @@ Implemented:
 
 - Registration
 - Login
+- Request validation
 - JWT generation
 - JWT verification
 - Unit and integration testing
@@ -76,7 +78,7 @@ AuthMS does not own:
 AuthMS follows a controller-service-repository structure:
 
 ```text
-Client -> Express Route -> Controller -> Service -> Repository -> MongoDB
+Client -> Express Route -> Validation -> Controller -> Service -> Repository -> MongoDB
 ```
 
 Primary source layout:
@@ -91,6 +93,8 @@ src/
     repositories/
     models/
     routes/
+    middleware/
+    validation/
   config/
   tests/
 ```
@@ -244,6 +248,8 @@ Status codes:
 
 See [API Reference](docs/api/reference.md) and [OpenAPI Specification](docs/api/openapi.yaml) for full request and response examples.
 
+Registration requires a trimmed username of 3–32 characters and a password of 8–72 characters, with a maximum of 72 UTF-8 bytes for bcrypt. Login requires a non-blank username and a non-empty password, preserving both strings exactly for existing credentials. Passwords are never trimmed. Invalid input returns `400` with `success: false`, `message: "Invalid request body"`, and field-level `errors` before the controller or service runs.
+
 ## Scripts
 
 | Command                    | Description                                          |
@@ -305,6 +311,7 @@ See the official [installation and onboarding guide](https://docs.renovatebot.co
 - Previously exposed credentials must be rotated rather than merely removed.
 - JWT secrets must be unique per environment.
 - Passwords are hashed with bcrypt before persistence.
+- Registration and login bodies are validated with Zod; validation errors never include submitted values.
 - Credential errors deliberately use a generic message.
 - User responses must never expose password hashes.
 - Production MongoDB must require authentication and encrypted connections.

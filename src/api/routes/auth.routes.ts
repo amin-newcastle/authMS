@@ -1,14 +1,22 @@
 import express from 'express';
 
 import AuthController from '../controllers/auth.controller.js';
+import { validateBody } from '../middleware/validate-body.js';
+import { loginSchema, registrationSchema } from '../validation/auth.schemas.js';
 
-// Router mounted under /api/v1/auth in app.ts — full paths: /register, /login, /verify
+// app.ts adds /api/v1/auth before these paths, so /login becomes /api/v1/auth/login.
 const router = express.Router();
 
-// POST routes mapped to the methods in the AuthController
-router.post('/register', AuthController.register); // Create a new user account
-router.post('/login', AuthController.login); // Authenticate and receive a JWT
-router.post('/verify', AuthController.verify); // Validate a JWT (used by other microservices)
+// Express runs these steps from left to right: check the body, then run the controller.
+// If the check fails, validateBody sends the error response and stops there.
+router.post(
+  '/register',
+  validateBody(registrationSchema),
+  AuthController.register,
+);
+router.post('/login', validateBody(loginSchema), AuthController.login);
+// A bearer token is the login token sent as "Authorization: Bearer <token>".
+// This route checks that token, so it does not need the username/password checklist.
+router.post('/verify', AuthController.verify);
 
-// Export the router so it can be used in app.js (e.g., mounted under /api/v1/auth)
 export default router;
