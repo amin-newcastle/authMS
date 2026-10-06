@@ -8,11 +8,48 @@ http://localhost:5000
 
 ## Credential Rules
 
-- `username` is required.
-- `username` must be unique.
-- `password` is required.
-- Passwords are hashed with bcrypt before persistence.
-- Password hashes must never be returned in API responses.
+Registration and login accept a JSON object containing string `username` and `password` fields. Zod validates the body before the controller or service runs. Unknown fields are removed from the parsed body.
+
+| Field      | Registration                                                     | Login                                                                       |
+| ---------- | ---------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| `username` | Required string, trimmed, 3–32 characters after trimming, unique | Required string, must contain a non-whitespace character, preserved exactly |
+| `password` | Required string, 8–72 characters and at most 72 UTF-8 bytes      | Required string, non-empty                                                  |
+
+Registration returns the trimmed username. Usernames remain case-sensitive; use the stored username exactly when logging in. Passwords are never trimmed. Login does not enforce the new registration length limits or alter usernames. Passwords are hashed with bcrypt before persistence, and hashes are never returned in API responses.
+
+## Validation Errors
+
+For example, registration with `username: "ab"` and a valid password returns HTTP `400`:
+
+```json
+{
+  "success": false,
+  "message": "Invalid request body",
+  "errors": [
+    {
+      "field": "username",
+      "message": "Username must be at least 3 characters long"
+    }
+  ]
+}
+```
+
+Malformed JSON also returns HTTP `400`:
+
+```json
+{
+  "success": false,
+  "message": "Invalid request body",
+  "errors": [
+    {
+      "field": "body",
+      "message": "Request body must be a valid JSON object"
+    }
+  ]
+}
+```
+
+Field validation uses `username` or `password` in `errors[].field`; an invalid top-level body uses `body`. Error messages describe failed rules and never include submitted values. No service or database operation runs when registration or login validation fails.
 
 ## Status Codes
 
