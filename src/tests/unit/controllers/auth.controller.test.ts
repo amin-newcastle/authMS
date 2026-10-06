@@ -11,6 +11,7 @@ import jwt from 'jsonwebtoken';
 import httpMocks from 'node-mocks-http';
 
 import AuthController from '../../../api/controllers/auth.controller.ts';
+import { AppError } from '../../../api/errors/app.error.ts';
 import AuthService from '../../../api/services/auth.service.ts';
 
 // Mock AuthService to isolate controller tests from service logic
@@ -78,7 +79,7 @@ describe('AuthController', () => {
       expect(data.user).not.toHaveProperty('password');
     });
 
-    it('should return 400 when user already exists', async () => {
+    it('passes an existing-user error to the route wrapper', async () => {
       // Arrange
       const req = httpMocks.createRequest<Request>({
         method: 'POST',
@@ -86,21 +87,17 @@ describe('AuthController', () => {
         body: { username: 'testuser', password: 'pwd' },
       });
       const res = createMockResponse();
-      mockedAuthService.registerUser.mockRejectedValue(
-        new Error('User already exists'),
-      );
+      const error = new AppError('User already exists', 409);
+      mockedAuthService.registerUser.mockRejectedValue(error);
 
       // Act
-      await AuthController.register(req, res);
+      await expect(AuthController.register(req, res)).rejects.toBe(error);
 
       // Assert
-      expect(res.statusCode).toBe(400);
-      const data = res._getJSONData();
-      expect(data).toHaveProperty('message', 'User already exists');
-      expect(data).toHaveProperty('success', false);
+      expect(res._isEndCalled()).toBe(false);
     });
 
-    it('should handle non-Error rejection on register', async () => {
+    it('passes a non-Error registration rejection to the route wrapper', async () => {
       // Arrange
       const req = httpMocks.createRequest<Request>({
         method: 'POST',
@@ -111,15 +108,10 @@ describe('AuthController', () => {
       mockedAuthService.registerUser.mockRejectedValue('oops');
 
       // Act
-      await AuthController.register(req, res);
+      await expect(AuthController.register(req, res)).rejects.toBe('oops');
 
       // Assert
-      expect(res.statusCode).toBe(400);
-      const data = res._getJSONData();
-      expect(data).toEqual({
-        success: false,
-        message: 'An unknown error occurred',
-      });
+      expect(res._isEndCalled()).toBe(false);
     });
   });
 
@@ -144,7 +136,7 @@ describe('AuthController', () => {
       expect(data).toHaveProperty('token', 'fake.jwt.token');
     });
 
-    it('should return 400 on invalid credentials', async () => {
+    it('passes invalid credentials to the route wrapper', async () => {
       // Arrange
       const req = httpMocks.createRequest<Request>({
         method: 'POST',
@@ -152,21 +144,17 @@ describe('AuthController', () => {
         body: { username: 'testuser', password: 'wrong' },
       });
       const res = createMockResponse();
-      mockedAuthService.loginUser.mockRejectedValue(
-        new Error('Invalid username or password'),
-      );
+      const error = new AppError('Invalid username or password', 401);
+      mockedAuthService.loginUser.mockRejectedValue(error);
 
       // Act
-      await AuthController.login(req, res);
+      await expect(AuthController.login(req, res)).rejects.toBe(error);
 
       // Assert
-      expect(res.statusCode).toBe(400);
-      const data = res._getJSONData();
-      expect(data).toHaveProperty('message', 'Invalid username or password');
-      expect(data).toHaveProperty('success', false);
+      expect(res._isEndCalled()).toBe(false);
     });
 
-    it('should handle non-Error rejection on login', async () => {
+    it('passes a non-Error login rejection to the route wrapper', async () => {
       // Arrange
       const req = httpMocks.createRequest<Request>({
         method: 'POST',
@@ -177,15 +165,10 @@ describe('AuthController', () => {
       mockedAuthService.loginUser.mockRejectedValue(42);
 
       // Act
-      await AuthController.login(req, res);
+      await expect(AuthController.login(req, res)).rejects.toBe(42);
 
       // Assert
-      expect(res.statusCode).toBe(400);
-      const data = res._getJSONData();
-      expect(data).toEqual({
-        success: false,
-        message: 'An unknown error occurred',
-      });
+      expect(res._isEndCalled()).toBe(false);
     });
   });
 
@@ -226,18 +209,17 @@ describe('AuthController', () => {
       const res = createMockResponse();
 
       // Act
-      await AuthController.verify(req, res);
+      await expect(AuthController.verify(req, res)).rejects.toMatchObject({
+        statusCode: 401,
+        message: 'Token is required',
+      });
 
       // Assert
       expect(mockedJwtVerify).not.toHaveBeenCalled();
-      expect(res.statusCode).toBe(401);
-      expect(res._getJSONData()).toEqual({
-        success: false,
-        message: 'Token is required',
-      });
+      expect(res._isEndCalled()).toBe(false);
     });
 
-    it('should return 401 when token is missing', async () => {
+    it('throws an application error when the token is missing', async () => {
       // Arrange
       const req = httpMocks.createRequest<Request>({
         method: 'POST',
@@ -247,17 +229,18 @@ describe('AuthController', () => {
       const res = createMockResponse();
 
       // Act
-      await AuthController.verify(req, res);
-
-      // Assert
-      expect(res.statusCode).toBe(401);
-      expect(res._getJSONData()).toEqual({
-        success: false,
+      const verification = AuthController.verify(req, res);
+      await expect(verification).rejects.toBeInstanceOf(AppError);
+      await expect(verification).rejects.toMatchObject({
+        statusCode: 401,
         message: 'Token is required',
       });
+
+      // Assert
+      expect(res._isEndCalled()).toBe(false);
     });
 
-    it('should return 401 when token verification throws an Error', async () => {
+    it('passes a token verification error to the route wrapper', async () => {
       // Arrange
       const req = httpMocks.createRequest<Request>({
         method: 'POST',
@@ -266,22 +249,19 @@ describe('AuthController', () => {
         body: {},
       });
       const res = createMockResponse();
+      const error = new jwt.JsonWebTokenError('jwt malformed');
       mockedJwtVerify.mockImplementation(() => {
-        throw new Error('jwt malformed');
+        throw error;
       });
 
       // Act
-      await AuthController.verify(req, res);
+      await expect(AuthController.verify(req, res)).rejects.toBe(error);
 
       // Assert
-      expect(res.statusCode).toBe(401);
-      expect(res._getJSONData()).toEqual({
-        success: false,
-        message: 'jwt malformed',
-      });
+      expect(res._isEndCalled()).toBe(false);
     });
 
-    it('should return 401 when token verification throws a non-Error value', async () => {
+    it('passes a non-Error token verification failure to the route wrapper', async () => {
       // Arrange
       const req = httpMocks.createRequest<Request>({
         method: 'POST',
@@ -295,14 +275,10 @@ describe('AuthController', () => {
       });
 
       // Act
-      await AuthController.verify(req, res);
+      await expect(AuthController.verify(req, res)).rejects.toBe('invalid');
 
       // Assert
-      expect(res.statusCode).toBe(401);
-      expect(res._getJSONData()).toEqual({
-        success: false,
-        message: 'An unknown error occurred',
-      });
+      expect(res._isEndCalled()).toBe(false);
     });
   });
 });

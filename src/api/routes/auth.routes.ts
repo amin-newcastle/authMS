@@ -1,6 +1,7 @@
 import express from 'express';
 
 import AuthController from '../controllers/auth.controller.js';
+import { asyncHandler } from '../middleware/async-handler.js';
 import { validateBody } from '../middleware/validate-body.js';
 import { loginSchema, registrationSchema } from '../validation/auth.schemas.js';
 
@@ -12,11 +13,15 @@ const router = express.Router();
 router.post(
   '/register',
   validateBody(registrationSchema),
-  AuthController.register,
+  asyncHandler(AuthController.register),
 );
-router.post('/login', validateBody(loginSchema), AuthController.login);
+router.post(
+  '/login',
+  validateBody(loginSchema),
+  asyncHandler(AuthController.login),
+);
 // A bearer token is the login token sent as "Authorization: Bearer <token>".
 // This route checks that token, so it does not need the username/password checklist.
-router.post('/verify', AuthController.verify);
+router.post('/verify', asyncHandler(AuthController.verify));
 
 export default router;

@@ -69,7 +69,7 @@ describe('authentication routes integration', () => {
     const duplicate = await request(app)
       .post('/api/v1/auth/register')
       .send({ username: 'duplicateuser', password: 'password123' })
-      .expect(400);
+      .expect(409);
 
     expect(duplicate.body).toEqual({
       success: false,
@@ -92,5 +92,27 @@ describe('authentication routes integration', () => {
       .expect(200);
 
     expect(login.body).toEqual({ success: true, token: expect.any(String) });
+  });
+
+  it('returns the same authentication error for a missing account and an incorrect password', async () => {
+    await request(app)
+      .post('/api/v1/auth/register')
+      .send({ username: 'existinguser', password: 'password123' })
+      .expect(201);
+
+    const missingAccount = await request(app)
+      .post('/api/v1/auth/login')
+      .send({ username: 'missinguser', password: 'password123' })
+      .expect(401);
+    const incorrectPassword = await request(app)
+      .post('/api/v1/auth/login')
+      .send({ username: 'existinguser', password: 'wrongpassword' })
+      .expect(401);
+
+    expect(missingAccount.body).toEqual({
+      success: false,
+      message: 'Invalid username or password',
+    });
+    expect(incorrectPassword.body).toEqual(missingAccount.body);
   });
 });

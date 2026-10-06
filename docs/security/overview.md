@@ -9,6 +9,7 @@ AuthMS handles sensitive authentication data, so security decisions should be ex
 - Login errors use a generic `Invalid username or password` message.
 - JWTs are signed with `JWT_SECRET`.
 - JWT verification rejects missing, invalid, and expired tokens.
+- Expected authentication failures use safe messages; unexpected failures return a generic `500` response without internal error messages or stack traces.
 - Registration responses return public user fields only.
 - Real `.env` files are excluded from version control.
 
@@ -46,5 +47,4 @@ Before production use, add or verify:
 - Account lockout or throttling
 - Security headers
 - Centralized audit logging
-- Sanitized error handling
 - Dependency vulnerability review
