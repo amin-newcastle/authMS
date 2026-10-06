@@ -2,6 +2,8 @@
 
 AuthMS includes a Dockerfile and Docker Compose stack for local containerized development.
 
+Both the builder and runtime stages use `node:22-alpine`, matching the Node.js 22 baseline for local development and CI.
+
 ## Services
 
 | Service  | Image                       | Purpose                      |

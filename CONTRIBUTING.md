@@ -17,20 +17,23 @@ AuthMS does not currently have a separate `CODE_OF_CONDUCT.md`, but contributors
 Install the following before working locally:
 
 - Git
-- Node.js 18 or newer
+- Node.js 22.x
 - npm
 - Docker Desktop with Docker Compose
 - Python 3.13 and pip, for local documentation validation
 
-The Docker image currently uses `node:18-alpine`. CI validates the service with Node.js 22 and Python 3.13.
+Use Node.js 22.x locally. The `.nvmrc` and `.node-version` files specify major version `22`, and `package.json` declares `engines.node: "22.x"`. Both Docker stages use `node:22-alpine`, and CI reads the Node.js version from `.nvmrc`. CI also uses Python 3.13.
 
 ## Local Project Setup
 
-From the repository root:
+Install or switch to Node.js 22.x, then verify the version and install dependencies from the repository root:
 
 ```bash
+node --version
 npm ci
 ```
+
+The Node.js version output should start with `v22.`. If you use a Node version manager, select the version specified in `.nvmrc` or `.node-version` using that manager's commands.
 
 If Husky hooks are not installed after dependency installation, run:
 
