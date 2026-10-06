@@ -47,6 +47,14 @@ docker compose build
 
 The audit step fails CI only for critical vulnerabilities. Lower-severity findings should still be reviewed, but they do not block the pull-request gate by default.
 
+## Dependency Updates With Renovate
+
+Renovate runs through the hosted GitHub app and opens dependency update pull requests. Its repository configuration is `renovate.json`, which extends `config:recommended` and disables automatic merging with `automerge: false`.
+
+Renovate pull requests targeting `main` run the same CI quality gate as other pull requests. Review release notes and breaking changes, wait for CI to pass, and merge through GitHub. Major dependency or runtime updates also need local verification of the affected behavior; keep the Node.js versions in development, CI, and the Dockerfile compatible.
+
+The Dependency Dashboard issue shows pending updates and configuration warnings. For installation and onboarding steps, see [the README's Renovate guide](https://github.com/amin-newcastle/authMS/blob/main/README.md#dependency-updates-with-renovate).
+
 ## Test Configuration
 
 CI uses test-only placeholder environment values:
