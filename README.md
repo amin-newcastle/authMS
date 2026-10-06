@@ -18,6 +18,7 @@ The service is written in TypeScript, runs on Node.js, exposes an Express API, a
 - [API Summary](#api-summary)
 - [Scripts](#scripts)
 - [Testing](#testing)
+- [Dependency Updates With Renovate](#dependency-updates-with-renovate)
 - [Security](#security)
 - [Further Documentation](#further-documentation)
 
@@ -134,7 +135,6 @@ $env:JWT_SECRET="replace-with-a-long-random-secret"
 Start Docker Desktop, then run:
 
 ```powershell
-$env:JWT_SECRET="replace-with-a-long-random-secret"
 docker compose up --build -d
 ```
 
@@ -270,6 +270,25 @@ npm run test:integration
 The integration setup uses `mongodb-memory-server`, so tests do not require the Docker MongoDB container.
 
 See [Testing Strategy](docs/development/testing.md).
+
+## Dependency Updates With Renovate
+
+Renovate checks dependency manifests and opens pull requests for available updates, including npm packages, Docker images, and GitHub Actions. The hosted GitHub app runs the bot; no local Renovate container or extra GitHub Actions workflow is required.
+
+Repository settings are in [renovate.json](renovate.json):
+
+- `config:recommended` enables the recommended presets and a Dependency Dashboard issue.
+- `automerge: false` leaves update pull requests for manual review and merge.
+
+### Reviewing Updates
+
+Open the repository's [pull requests](https://github.com/amin-newcastle/authMS/pulls) to review updates, or find the **Dependency Dashboard** in [Issues](https://github.com/amin-newcastle/authMS/issues) for pending updates and warnings.
+
+Read the release notes, check for breaking changes, and wait for the CI quality gate to pass before merging through GitHub. For major dependency or runtime updates, verify the affected behavior locally and check that the Node.js versions used in development, CI, and the Dockerfile remain compatible.
+
+If no updates appear, check that the app has access to `authMS`, the configuration is on the default branch, and any onboarding pull request has been merged. Review dashboard warnings when present.
+
+See the official [installation and onboarding guide](https://docs.renovatebot.com/getting-started/installing-onboarding/) and [recommended preset](https://docs.renovatebot.com/presets-config/#configrecommended) for more detail.
 
 ## Security
 
