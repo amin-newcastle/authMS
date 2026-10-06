@@ -8,7 +8,7 @@ This page explains runtime boundaries and operational behaviour. Use the [Docker
 
 `npm run dev` sets `NODE_ENV=development` and runs `src/server.ts` through Node.js with the `ts-node/esm` loader. Nodemon watches `src` and restarts the process when source files change. Environment files are outside that watch path, so configuration changes require a restart.
 
-The process runs on the developer's installed Node.js version. The README specifies Node.js 18 or newer; the container uses Node.js 18 and CI uses Node.js 22. These are different execution environments.
+Local development, Docker, and CI use Node.js 22. Developers must install or switch to Node.js 22.x before running local commands; `.nvmrc` and `.node-version` specify major version `22`, and `package.json` declares `engines.node: "22.x"`. CI reads `.nvmrc`, while both Docker stages use `node:22-alpine`.
 
 The developer supplies MongoDB through `DB_URI`: it can address a local MongoDB instance or an external development database such as MongoDB Atlas. Starting AuthMS does not provision either database. With the README's example `PORT=5000`, clients use `http://localhost:5000`; without a configured port, the application defaults to `3000`.
 
@@ -38,7 +38,7 @@ flowchart TD
     client["Developer / API client"]
     tools["Host database tools"]
     subgraph compose["Local Compose default network"]
-        auth["authms container<br/>Node.js 18 / Express<br/>port 5000"]
+        auth["authms container<br/>Node.js 22 / Express<br/>port 5000"]
         mongo["mongo container<br/>mongo:7<br/>port 27017"]
         auth -->|"mongodb://mongo:27017/authms"| mongo
     end
@@ -53,8 +53,8 @@ Both services join the implicit Compose default network. Inside `authms`, the na
 | Component     | Current configuration                                                                                      |
 | ------------- | ---------------------------------------------------------------------------------------------------------- |
 | AuthMS image  | Built from the repository Dockerfile                                                                       |
-| Builder stage | `node:18-alpine`; `npm ci`; `npm run build` compiles TypeScript into `dist/`                               |
-| Runtime stage | `node:18-alpine`; `npm ci --omit=dev --ignore-scripts`; copies compiled `dist/` from the builder           |
+| Builder stage | `node:22-alpine`; `npm ci`; `npm run build` compiles TypeScript into `dist/`                               |
+| Runtime stage | `node:22-alpine`; `npm ci --omit=dev --ignore-scripts`; copies compiled `dist/` from the builder           |
 | Startup       | `CMD ["node", "dist/server.js"]` runs compiled JavaScript directly; Compose supplies `NODE_ENV=production` |
 | Port          | Dockerfile declares `EXPOSE 5000`; Compose publishes `5000:5000`                                           |
 | Runtime user  | No `USER` instruction selects a non-root account                                                           |
@@ -116,7 +116,7 @@ These observations describe the checked-in implementation, not completed product
 | Shutdown                 | There are no runtime `SIGTERM` or `SIGINT` handlers and no explicit Mongoose cleanup. The `unhandledRejection` handler logs and closes the HTTP server before exiting with code `1` when a listener exists; it does not close the database connection or set a drain timeout. |
 | Observability            | Morgan request logging is enabled only in development and is mounted after `/health` and `/`. Startup and database messages use console logging; no centralized monitoring, metrics, or audit-log pipeline is configured.                                                     |
 | Hardening                | The local stack has no TLS termination, database authentication, health checks, or explicit non-root runtime user. The API lacks rate limiting and account lockout.                                                                                                           |
-| Runtime consistency      | Docker uses Node.js 18 while CI uses Node.js 22. The workflow does not run the test suites inside the final image.                                                                                                                                                            |
+| Runtime consistency      | Local development, Docker, and CI use Node.js 22. CI runs tests on Ubuntu and validates the Alpine image build, but does not run the test suites inside the final image.                                                                                                      |
 
 ## Proposed Production Architecture
 

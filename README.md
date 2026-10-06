@@ -99,12 +99,12 @@ See [Architecture Overview](docs/architecture/overview.md) for more detail.
 
 ## Prerequisites
 
-- Node.js 18 or newer
+- Node.js 22.x
 - npm
 - Docker Desktop and Docker Compose
 - MongoDB, if running locally without Docker
 
-The Docker image currently uses `node:18-alpine`, so Node.js 18 is the container runtime baseline.
+Node.js 22 is the baseline for local development, CI, and Docker. The `.nvmrc` and `.node-version` files specify major version `22`, `package.json` declares `engines.node: "22.x"`, and both Docker build stages use `node:22-alpine`.
 
 ## Environment Variables
 
@@ -168,6 +168,14 @@ docker compose down
 ```
 
 ## Local Development
+
+Install or switch to Node.js 22.x before installing dependencies. If you use a Node version manager, select the version specified in `.nvmrc` or `.node-version` using that manager's commands. Verify the active version:
+
+```powershell
+node --version
+```
+
+The output should start with `v22.`.
 
 Install dependencies:
 
@@ -279,6 +287,7 @@ Repository settings are in [renovate.json](renovate.json):
 
 - `config:recommended` enables the recommended presets and a Dependency Dashboard issue.
 - `automerge: false` leaves update pull requests for manual review and merge.
+- `packageRules` keeps Node.js and `@types/node` updates within major version 22. Change this rule when deliberately upgrading the baseline.
 
 ### Reviewing Updates
 

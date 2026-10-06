@@ -1,5 +1,11 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["config:recommended"],
-  "automerge": false
+  "automerge": false,
+  "packageRules": [
+    {
+      "matchPackageNames": ["node", "@types/node"],
+      "allowedVersions": "/^22(?:\\.|-|$)/"
+    }
+  ]
 }

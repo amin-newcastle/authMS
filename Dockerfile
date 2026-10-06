@@ -4,9 +4,9 @@
 # Why: We compile TypeScript to JavaScript here
 # This stage will be discarded after build completes
 
-FROM node:18-alpine AS builder
+FROM node:22-alpine AS builder
 # FROM = base image to start from
-# node:18-alpine = Node.js v18 on Alpine Linux (tiny Linux, ~5MB vs ~900MB for full Ubuntu)
+# node:22-alpine = Node.js v22 on Alpine Linux
 # AS builder = name this stage "builder" so we can reference it later
 
 WORKDIR /app
@@ -35,7 +35,7 @@ RUN npm run build
 # ============================================
 # Why: Create a smaller final image with only what's needed to run
 
-FROM node:18-alpine
+FROM node:22-alpine
 # Start fresh with a new clean Node.js image
 # This won't include TypeScript compiler or other build tools
 

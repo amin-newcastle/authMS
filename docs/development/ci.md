@@ -20,7 +20,7 @@ Branch protection or a GitHub repository ruleset must separately require the `CI
 
 ## Quality Gate
 
-The CI job runs on Ubuntu with Node.js 22 and Python 3.13. Application dependencies are installed with:
+The CI job runs on Ubuntu with Node.js 22 and Python 3.13. The Node.js setup step reads `.nvmrc` through `node-version-file`, keeping CI on the same major version as local development and Docker. Application dependencies are installed with:
 
 ```bash
 npm ci
