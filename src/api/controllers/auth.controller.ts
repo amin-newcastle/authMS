@@ -2,17 +2,13 @@ import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 
 import config from '../../config/env.js';
+import { AppError } from '../errors/app.error.js';
 import { IUser } from '../models/user.model.js';
 import AuthService from '../services/auth.service.js';
 import type {
   LoginInput,
   RegistrationInput,
 } from '../validation/auth.schemas.js';
-
-// JavaScript can throw values such as strings as well as Error objects.
-// Check that we have an Error before reading its message.
-const getErrorMessage = (error: unknown): string =>
-  error instanceof Error ? error.message : 'An unknown error occurred';
 
 // Read the login token from "Authorization: Bearer <token>".
 // slice(7) removes "Bearer " and leaves only the token itself.
@@ -32,7 +28,8 @@ const toPublicUser = (
 
 // Registration and login bodies have already passed the route's validation step.
 // The Request types describe that checked data; the types alone do not check it.
-// Controllers ask the service to do the work, then send an HTTP response to the client.
+// Controllers send successful responses. The route's async wrapper forwards
+// failures to the central error handler, which decides the error response.
 class AuthController {
   /**
    * @desc    Handles user registration requests
@@ -43,17 +40,13 @@ class AuthController {
     req: Request<unknown, unknown, RegistrationInput>,
     res: Response,
   ): Promise<void> {
-    try {
-      const user = await AuthService.registerUser(req.body);
+    const user = await AuthService.registerUser(req.body);
 
-      res.status(201).json({
-        success: true,
-        message: 'User registered successfully',
-        user: toPublicUser(user),
-      });
-    } catch (error: unknown) {
-      res.status(400).json({ success: false, message: getErrorMessage(error) });
-    }
+    res.status(201).json({
+      success: true,
+      message: 'User registered successfully',
+      user: toPublicUser(user),
+    });
   }
 
   /**
@@ -65,12 +58,8 @@ class AuthController {
     req: Request<unknown, unknown, LoginInput>,
     res: Response,
   ): Promise<void> {
-    try {
-      const token = await AuthService.loginUser(req.body);
-      res.status(200).json({ success: true, token });
-    } catch (error: unknown) {
-      res.status(400).json({ success: false, message: getErrorMessage(error) });
-    }
+    const token = await AuthService.loginUser(req.body);
+    res.status(200).json({ success: true, token });
   }
 
   /**
@@ -79,21 +68,16 @@ class AuthController {
    * @access  Public
    */
   static async verify(req: Request, res: Response): Promise<void> {
-    try {
-      const token = extractToken(req);
+    const token = extractToken(req);
 
-      if (!token) {
-        res.status(401).json({ success: false, message: 'Token is required' });
-        return;
-      }
-
-      // Check that the token was signed with our secret and has not expired.
-      // jwt.verify throws an error if the check fails; otherwise it returns the token's data.
-      const decoded = jwt.verify(token, config.jwtSecret);
-      res.status(200).json({ success: true, decoded });
-    } catch (error: unknown) {
-      res.status(401).json({ success: false, message: getErrorMessage(error) });
+    if (!token) {
+      throw new AppError('Token is required', 401);
     }
+
+    // Check that the token was signed with our secret and has not expired.
+    // jwt.verify throws an error if the check fails; otherwise it returns the token's data.
+    const decoded = jwt.verify(token, config.jwtSecret);
+    res.status(200).json({ success: true, decoded });
   }
 }
 

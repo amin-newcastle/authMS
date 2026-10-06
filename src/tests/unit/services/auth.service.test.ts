@@ -1,4 +1,5 @@
 import { jest, describe, it, expect, beforeEach } from '@jest/globals';
+import mongoose from 'mongoose';
 
 // Mock config and repository before importing the service
 jest.mock('../../../config/env.ts', () => ({
@@ -13,6 +14,7 @@ jest.mock('../../../api/repositories/auth.repository.ts', () => ({
   },
 }));
 
+import { AppError } from '../../../api/errors/app.error.ts';
 import AuthRepository from '../../../api/repositories/auth.repository.ts';
 import AuthService from '../../../api/services/auth.service.ts';
 import { buildHashedUser, readUserFixture } from '../../utils/user.ts';
@@ -49,15 +51,45 @@ describe('AuthService', () => {
       expect(AuthRepository.createUser).toHaveBeenCalled();
     });
 
-    it('registerUser should throw an error if user already exists', async () => {
+    it('registerUser throws a conflict error if the user already exists', async () => {
       // Arrange: simulate existing user found in DB
       AuthRepository.findUserByUsername.mockResolvedValue(mockUserData);
 
       // Act + Assert
-      await expect(AuthService.registerUser(mockUserData)).rejects.toThrow(
-        'User already exists',
-      );
+      const registration = AuthService.registerUser(mockUserData);
+      await expect(registration).rejects.toBeInstanceOf(AppError);
+      await expect(registration).rejects.toMatchObject({
+        message: 'User already exists',
+        statusCode: 409,
+      });
       expect(AuthRepository.createUser).not.toHaveBeenCalled();
+    });
+
+    it('maps a username collision during insertion to the same conflict error', async () => {
+      AuthRepository.findUserByUsername.mockResolvedValue(null);
+      AuthRepository.createUser.mockRejectedValue(
+        new mongoose.mongo.MongoServerError({
+          message: 'E11000 duplicate username',
+          code: 11000,
+          keyPattern: { username: 1 },
+        }),
+      );
+
+      const registration = AuthService.registerUser(mockUserData);
+
+      await expect(registration).rejects.toBeInstanceOf(AppError);
+      await expect(registration).rejects.toMatchObject({
+        message: 'User already exists',
+        statusCode: 409,
+      });
+    });
+
+    it('preserves an unrelated database failure for the central error handler', async () => {
+      const error = new Error('private database connection details');
+      AuthRepository.findUserByUsername.mockResolvedValue(null);
+      AuthRepository.createUser.mockRejectedValue(error);
+
+      await expect(AuthService.registerUser(mockUserData)).rejects.toBe(error);
     });
   });
 
@@ -67,9 +99,12 @@ describe('AuthService', () => {
       AuthRepository.findUserByUsername.mockResolvedValue(null);
 
       // Act + Assert
-      await expect(
-        AuthService.loginUser({ username: 'noone', password: 'x' }),
-      ).rejects.toThrow('Invalid username or password');
+      const login = AuthService.loginUser({ username: 'noone', password: 'x' });
+      await expect(login).rejects.toBeInstanceOf(AppError);
+      await expect(login).rejects.toMatchObject({
+        message: 'Invalid username or password',
+        statusCode: 401,
+      });
     });
 
     it('loginUser should throw an error if password is incorrect', async () => {
@@ -77,12 +112,15 @@ describe('AuthService', () => {
       AuthRepository.findUserByUsername.mockResolvedValue(mockUser);
 
       // Act + Assert
-      await expect(
-        AuthService.loginUser({
-          username: 'testuser',
-          password: 'wrongpassword',
-        }),
-      ).rejects.toThrow('Invalid username or password');
+      const login = AuthService.loginUser({
+        username: 'testuser',
+        password: 'wrongpassword',
+      });
+      await expect(login).rejects.toBeInstanceOf(AppError);
+      await expect(login).rejects.toMatchObject({
+        message: 'Invalid username or password',
+        statusCode: 401,
+      });
     });
 
     it('loginUser should return a JWT token on successful login', async () => {

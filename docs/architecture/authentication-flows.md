@@ -15,13 +15,13 @@ AuthMS implements registration, login, and bearer-token verification. This page 
 | Models / Mongoose           | [user.model.ts](https://github.com/amin-newcastle/authMS/blob/main/src/api/models/user.model.ts)                                                                                                                     | Validate required string fields `username` and `password`, map `User` queries and documents to MongoDB, and declare the unique username index.         |
 | MongoDB                     | [Database collections](../database/collections.md)                                                                                                                                                                   | Persist user records and enforce the unique username index. Password hashing remains in `AuthService`.                                                 |
 
-Registration and login pass through request validation before traversing the controller, service, and repository layers. Verification calls `jsonwebtoken` in `AuthController` and makes no database query. In the diagrams, database arrows represent repository operations through the Mongoose `User` model. A `break` block ends the request when its error condition applies; otherwise processing continues below it.
+Registration and login pass through request validation before traversing the controller, service, and repository layers. Verification calls `jsonwebtoken` in `AuthController` and makes no database query. Route handlers use `asyncHandler` to forward failures to the central `errorHandler`. In the diagrams, database arrows represent repository operations through the Mongoose `User` model. A `break` block ends the request when its error condition applies; otherwise processing continues below it.
 
 ## Registration
 
 `POST /api/v1/auth/register` accepts JSON credentials. `validateBody(registrationSchema)` checks required string fields, trims the username, enforces its 3–32 character length, and requires a password of 8–72 characters and at most 72 UTF-8 bytes. Passwords are preserved exactly. Invalid input returns `400` with field errors before the controller or service runs.
 
-The middleware replaces `req.body` with the parsed credentials, discarding unknown fields. `AuthController.register` passes those credentials to `AuthService.registerUser`, which looks up the normalized username before hashing anything. An existing user causes `User already exists` and a `400` response.
+The middleware replaces `req.body` with the parsed credentials, discarding unknown fields. `AuthController.register` passes those credentials to `AuthService.registerUser`, which looks up the normalized username before hashing anything. An existing user causes an `AppError` with `User already exists`; the central handler returns `409`. If concurrent registrations both pass that check, the service maps MongoDB's duplicate username index error to the same safe `409` response.
 
 For a new username, the service calls `bcrypt.hash(password, 10)`: the configured bcrypt cost is **10**. It passes credentials containing that hash to `AuthRepository.createUser` without changing the parsed input. The repository constructs and saves a `User`; the model's required fields and MongoDB unique index also apply at persistence time.
 
@@ -38,6 +38,7 @@ config:
 sequenceDiagram
     actor Client
     participant Routes as Express / authRoutes
+    participant Errors as Central error handler
     participant Validation as Zod body validation
     participant Controller as AuthController
     participant Service as AuthService
@@ -55,8 +56,10 @@ sequenceDiagram
     DB-->>Repository: User or null
     Repository-->>Service: User or null
     break Username already exists
-        Service-->>Controller: Throw "User already exists"
-        Controller-->>Client: 400 (success false, message)
+        Service-->>Controller: Throw AppError (409, User already exists)
+        Controller-->>Routes: Rejected handler
+        Routes->>Errors: asyncHandler forwards error
+        Errors-->>Client: 409 (success false, message)
     end
     Service->>Service: bcrypt.hash(password, 10)
     Service->>Repository: createUser(data with password hash)
@@ -68,13 +71,13 @@ sequenceDiagram
     Controller-->>Client: 201 (success, message, public user)
 ```
 
-Hashing, model validation, and database failures caught by the registration controller also become `400` responses. A duplicate insert rejected by the unique index can therefore have a database error message instead of the service's `User already exists` message.
+Unexpected hashing, model validation, and database failures reach the central handler and return `500` with `Internal Server Error`. Internal dependency messages are not sent to the client.
 
 ## Login
 
 `POST /api/v1/auth/login` first runs `validateBody(loginSchema)`. Username and password must be strings; the username must contain a non-whitespace character, and the password must be non-empty. Both strings are preserved exactly. Login does not apply registration length limits, preserving access for existing credentials.
 
-The middleware forwards parsed credentials to `AuthController.login`, which calls `AuthService.loginUser`. The service loads the user by username and compares the supplied password against the stored hash with `bcrypt.compare`. A missing user and a failed comparison both produce `Invalid username or password`; the controller responds with `400`.
+The middleware forwards parsed credentials to `AuthController.login`, which calls `AuthService.loginUser`. The service loads the user by username and compares the supplied password against the stored hash with `bcrypt.compare`. A missing user and a failed comparison both throw an `AppError` with `Invalid username or password`; the central handler returns `401`.
 
 When the comparison succeeds, the service calls `jwt.sign({ id: user._id }, config.jwtSecret, { expiresIn: '1h' })`. The resulting JWT contains the user ID and the library-generated `iat` and `exp` claims, with a one-hour lifetime. `AuthController.login` returns `200` with `success: true` and `token`. It does not return the stored user document or create a database session record.
 
@@ -89,6 +92,7 @@ config:
 sequenceDiagram
     actor Client
     participant Routes as Express / authRoutes
+    participant Errors as Central error handler
     participant Validation as Zod body validation
     participant Controller as AuthController
     participant Service as AuthService
@@ -106,26 +110,30 @@ sequenceDiagram
     DB-->>Repository: User or null
     Repository-->>Service: User or null
     break User not found
-        Service-->>Controller: Throw "Invalid username or password"
-        Controller-->>Client: 400 (success false, message)
+        Service-->>Controller: Throw AppError (401, Invalid username or password)
+        Controller-->>Routes: Rejected handler
+        Routes->>Errors: asyncHandler forwards error
+        Errors-->>Client: 401 (success false, message)
     end
     Service->>Service: bcrypt.compare(password, user.password)
     break Password does not match
-        Service-->>Controller: Throw "Invalid username or password"
-        Controller-->>Client: 400 (success false, message)
+        Service-->>Controller: Throw AppError (401, Invalid username or password)
+        Controller-->>Routes: Rejected handler
+        Routes->>Errors: asyncHandler forwards error
+        Errors-->>Client: 401 (success false, message)
     end
     Service->>Service: jwt.sign(id, JWT_SECRET, expiresIn 1h)
     Service-->>Controller: Signed JWT
     Controller-->>Client: 200 (success true, token)
 ```
 
-Other failures in the login path, including database, bcrypt, or signing errors, also become `400` responses. Only the missing-user and password-mismatch cases deliberately share the generic credential message.
+Unexpected failures in the login path, including database, bcrypt, or signing errors, return `500` with `Internal Server Error`. The missing-user and password-mismatch cases deliberately share the generic credential message.
 
 ## Token Verification
 
 `POST /api/v1/auth/verify` reads `Authorization: Bearer <token>` and requires no request body. The controller uses the case-sensitive check `authHeader.startsWith('Bearer ')`, then `authHeader.slice(7)`. It does not trim the remaining token. An absent header, a different prefix, or an empty token produces `401` with `Token is required`. A token supplied only in the request body is ignored.
 
-`AuthController.verify` calls `jwt.verify(token, config.jwtSecret)` directly. The library checks the signature and applicable time claims; invalid or expired tokens throw, and the controller returns `401` with the error message. There are no service or repository calls in this path.
+`AuthController.verify` calls `jwt.verify(token, config.jwtSecret)` directly. The library checks the signature and applicable time claims. Known JWT verification errors reach the central handler and return `401` with `Invalid or expired token`; unexpected failures return a safe `500` response. There are no service or repository calls in this path.
 
 On success, the controller returns `200` with `success: true` and the raw verification result in `decoded`, which can be an object or a string. Although AuthMS login tokens contain `id`, `iat`, and `exp`, this endpoint does not require those fields or validate a separate payload schema. It supplies no issuer or audience restrictions and does not look up whether the user still exists, check roles, or consult a revocation list.
 
@@ -140,18 +148,23 @@ config:
 sequenceDiagram
     actor Client
     participant Routes as Express / authRoutes
+    participant Errors as Central error handler
     participant Controller as AuthController
     participant JWT as jsonwebtoken
     Client->>Routes: POST /api/v1/auth/verify (Authorization header)
     Routes->>Controller: verify(req, res)
     Controller->>Controller: extractToken(req)
     break Token missing or Bearer prefix not accepted
-        Controller-->>Client: 401 (Token is required)
+        Controller-->>Routes: Throw AppError (401, Token is required)
+        Routes->>Errors: asyncHandler forwards error
+        Errors-->>Client: 401 (Token is required)
     end
     Controller->>JWT: verify(token, config.jwtSecret)
     break Invalid or expired token
         JWT-->>Controller: Throw verification error
-        Controller-->>Client: 401 (success false, error message)
+        Controller-->>Routes: Rejected handler
+        Routes->>Errors: asyncHandler forwards error
+        Errors-->>Client: 401 (success false, Invalid or expired token)
     end
     JWT-->>Controller: Decoded object or string
     Controller-->>Client: 200 (success true, decoded)
@@ -163,18 +176,19 @@ The Zod registration and login schemas enforce the [credential rules](../api/ref
 
 See [Why Zod for Request Validation](overview.md#why-zod-for-request-validation) for the library choice and how it relates to enterprise validation practices.
 
-Malformed JSON with `Content-Type: application/json` fails earlier in `express.json()`. The global handler in `app.ts` responds with `400` and the same validation envelope: `success: false`, `message: "Invalid request body"`, and an `errors` entry whose field is `body` and message is `Request body must be a valid JSON object`. This applies to all three POST routes, including verification if a malformed JSON body is sent.
+Malformed JSON with `Content-Type: application/json` fails earlier in `express.json()`. The central handler in `src/api/middleware/error-handler.ts`, registered last in `app.ts`, responds with `400` and the same validation envelope: `success: false`, `message: "Invalid request body"`, and an `errors` entry whose field is `body` and message is `Request body must be a valid JSON object`. This applies to all three POST routes, including verification if a malformed JSON body is sent.
 
 Schema failures return `errors` entries with `field: "username"`, `"password"`, or `"body"` and a rule message. Neither field validation nor JSON parsing errors expose submitted values. Controllers and services are not called for invalid registration or login bodies.
 
-| Error boundary                                                       | HTTP status | Response fields                       |
-| -------------------------------------------------------------------- | ----------- | ------------------------------------- |
-| Registration/login validation or JSON parsing rejects input          | `400`       | `success: false`, `message`, `errors` |
-| Registration or login controller catches a failure                   | `400`       | `success: false`, `message`           |
-| Verification controller rejects a missing token or catches a failure | `401`       | `success: false`, `message`           |
-| Other errors reach the Express global error handler                  | `500`       | `message` only                        |
+| Error boundary                                              | HTTP status | Response fields                       |
+| ----------------------------------------------------------- | ----------- | ------------------------------------- |
+| Registration/login validation or JSON parsing rejects input | `400`       | `success: false`, `message`, `errors` |
+| Registration finds an existing username                     | `409`       | `success: false`, `message`           |
+| Login rejects credentials                                   | `401`       | `success: false`, `message`           |
+| Verification rejects a missing, invalid, or expired token   | `401`       | `success: false`, `message`           |
+| Unexpected failures reach the central error handler         | `500`       | `success: false`, `message`           |
 
-Controllers pass through `Error.message`; a thrown value that is not an `Error` becomes `An unknown error occurred`. For non-parsing failures, the global handler uses the error message or `Internal Server Error`. Error messages from dependencies are currently exposed by these handlers.
+`AppError` carries an expected failure's HTTP status and safe client message. `asyncHandler` passes rejected route handlers to Express, and `errorHandler` writes the error response in one place. Unexpected errors, including thrown values that are not `Error` objects, return `Internal Server Error` without exposing dependency messages or stack traces. Zod field validation continues to return its existing detailed `400` envelope directly from `validateBody`.
 
 ## Trust Boundaries
 

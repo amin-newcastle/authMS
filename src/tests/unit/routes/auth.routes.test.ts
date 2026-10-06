@@ -1,8 +1,16 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+import jwt from 'jsonwebtoken';
 import request from 'supertest';
 
+import { AppError } from '../../../api/errors/app.error.ts';
 import AuthService from '../../../api/services/auth.service.ts';
 import app from '../../../app.ts';
+import config from '../../../config/env.ts';
+
+jest.mock('../../../config/env.ts', () => ({
+  __esModule: true,
+  default: { jwtSecret: 'route-test-only-secret' },
+}));
 
 jest.mock('../../../api/services/auth.service.ts', () => ({
   __esModule: true,
@@ -351,5 +359,140 @@ describe('authentication request validation', () => {
     });
     expect(mockedAuthService.registerUser).not.toHaveBeenCalled();
     expect(mockedAuthService.loginUser).not.toHaveBeenCalled();
+  });
+
+  describe('central error responses', () => {
+    it('returns 409 for an existing registration username', async () => {
+      mockedAuthService.registerUser.mockRejectedValue(
+        new AppError('User already exists', 409),
+      );
+
+      const response = await request(app)
+        .post('/api/v1/auth/register')
+        .send(validCredentials)
+        .expect(409);
+
+      expect(response.body).toEqual({
+        success: false,
+        message: 'User already exists',
+      });
+    });
+
+    it('returns 401 for invalid credentials', async () => {
+      mockedAuthService.loginUser.mockRejectedValue(
+        new AppError('Invalid username or password', 401),
+      );
+
+      const response = await request(app)
+        .post('/api/v1/auth/login')
+        .send(validCredentials)
+        .expect(401);
+
+      expect(response.body).toEqual({
+        success: false,
+        message: 'Invalid username or password',
+      });
+    });
+
+    it.each(['register', 'login'])(
+      'returns a safe 500 for an unexpected %s failure',
+      async (route) => {
+        const error = new Error('private database connection details');
+        mockedAuthService.registerUser.mockRejectedValue(error);
+        mockedAuthService.loginUser.mockRejectedValue(error);
+
+        const response = await request(app)
+          .post(`/api/v1/auth/${route}`)
+          .send(validCredentials)
+          .expect(500);
+
+        expect(response.body).toEqual({
+          success: false,
+          message: 'Internal Server Error',
+        });
+      },
+    );
+
+    it.each([undefined, null, false, 0, '', 'route', 'router'])(
+      'returns 500 instead of skipping the route for a rejected %p value',
+      async (rejection) => {
+        mockedAuthService.loginUser.mockRejectedValue(rejection);
+
+        const response = await request(app)
+          .post('/api/v1/auth/login')
+          .send(validCredentials)
+          .expect(500);
+
+        expect(response.body).toEqual({
+          success: false,
+          message: 'Internal Server Error',
+        });
+      },
+    );
+
+    it.each(['expired', 'tampered', 'not active'])(
+      'returns the same safe 401 for a real %s JWT',
+      async (kind) => {
+        let token = jwt.sign(
+          { id: '123' },
+          config.jwtSecret,
+          kind === 'expired'
+            ? { expiresIn: -1 }
+            : kind === 'not active'
+              ? { notBefore: '1h' }
+              : {},
+        );
+        if (kind === 'tampered') {
+          const [header, , signature] = token.split('.');
+          const alteredPayload = Buffer.from(
+            JSON.stringify({ id: 'different-user' }),
+          ).toString('base64url');
+          token = `${header}.${alteredPayload}.${signature}`;
+        }
+
+        const response = await request(app)
+          .post('/api/v1/auth/verify')
+          .set('Authorization', `Bearer ${token}`)
+          .expect(401);
+
+        expect(response.body).toEqual({
+          success: false,
+          message: 'Invalid or expired token',
+        });
+      },
+    );
+
+    it('returns a safe 500 if token verification has an unexpected internal failure', async () => {
+      const verify = jest.spyOn(jwt, 'verify').mockImplementation(() => {
+        throw new Error('private token verifier failure');
+      });
+
+      try {
+        const response = await request(app)
+          .post('/api/v1/auth/verify')
+          .set('Authorization', 'Bearer any.token')
+          .expect(500);
+
+        expect(response.body).toEqual({
+          success: false,
+          message: 'Internal Server Error',
+        });
+      } finally {
+        verify.mockRestore();
+      }
+    });
+
+    it('preserves malformed JSON validation before token verification', async () => {
+      const response = await request(app)
+        .post('/api/v1/auth/verify')
+        .set('Content-Type', 'application/json')
+        .send('{"token":"private-submitted-token"')
+        .expect(400);
+
+      expectValidationError(response.body, ['body']);
+      expect(JSON.stringify(response.body)).not.toContain(
+        'private-submitted-token',
+      );
+    });
   });
 });

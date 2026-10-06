@@ -1,10 +1,7 @@
-import express, {
-  type NextFunction,
-  type Request,
-  type Response,
-} from 'express';
+import express from 'express';
 import morgan from 'morgan';
 
+import { errorHandler } from './api/middleware/error-handler.js';
 import authRoutes from './api/routes/auth.routes.js';
 
 const app = express();
@@ -30,36 +27,7 @@ if (process.env.NODE_ENV === 'development') {
 
 app.use('/api/v1/auth', authRoutes);
 
-// The four parameters tell Express this function handles errors.
-// Place it after the routes so errors from earlier steps can reach it.
-app.use(
-  (err: Error, _req: Request, res: Response, _next: NextFunction): void => {
-    // These checks identify an error caused by broken JSON in a request.
-    // Other errors should reach the general server-error response below.
-    if (
-      err instanceof SyntaxError &&
-      'type' in err &&
-      err.type === 'entity.parse.failed' &&
-      'status' in err &&
-      err.status === 400
-    ) {
-      // Send the same error format used for failed field checks.
-      // Do not send back the broken JSON, because it could contain a password.
-      res.status(400).json({
-        success: false,
-        message: 'Invalid request body',
-        errors: [
-          {
-            field: 'body',
-            message: 'Request body must be a valid JSON object',
-          },
-        ],
-      });
-      return;
-    }
-
-    res.status(500).json({ message: err.message || 'Internal Server Error' });
-  },
-);
+// Keep this last so errors from the JSON parser, routes, and services reach it.
+app.use(errorHandler);
 
 export default app;

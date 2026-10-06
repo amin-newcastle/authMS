@@ -238,13 +238,14 @@ http://localhost:5000
 
 Status codes:
 
-| Status | Meaning                                                     |
-| ------ | ----------------------------------------------------------- |
-| `200`  | Health check, login, or token verification succeeded        |
-| `201`  | User registered successfully                                |
-| `400`  | Invalid request, duplicate username, or invalid credentials |
-| `401`  | Missing, invalid, or expired token                          |
-| `500`  | Unexpected server error                                     |
+| Status | Meaning                                                      |
+| ------ | ------------------------------------------------------------ |
+| `200`  | Health check, login, or token verification succeeded         |
+| `201`  | User registered successfully                                 |
+| `400`  | Invalid request fields or malformed JSON                     |
+| `401`  | Invalid login credentials or missing, invalid, expired token |
+| `409`  | Username already exists                                      |
+| `500`  | Unexpected server error                                      |
 
 See [API Reference](docs/api/reference.md) and [OpenAPI Specification](docs/api/openapi.yaml) for full request and response examples.
 

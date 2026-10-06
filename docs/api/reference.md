@@ -53,13 +53,16 @@ Field validation uses `username` or `password` in `errors[].field`; an invalid t
 
 ## Status Codes
 
-| Status | Meaning                                                     |
-| ------ | ----------------------------------------------------------- |
-| `200`  | Health check, login, or token verification succeeded        |
-| `201`  | User registered successfully                                |
-| `400`  | Invalid request, duplicate username, or invalid credentials |
-| `401`  | Missing, invalid, or expired token                          |
-| `500`  | Unexpected server error                                     |
+| Status | Meaning                                                   |
+| ------ | --------------------------------------------------------- |
+| `200`  | Health check, login, or token verification succeeded      |
+| `201`  | User registered successfully                              |
+| `400`  | Invalid request body or malformed JSON                    |
+| `401`  | Invalid credentials or missing, invalid, or expired token |
+| `409`  | Username already exists                                   |
+| `500`  | Unexpected server error                                   |
+
+Unexpected failures return `{"success": false, "message": "Internal Server Error"}`. Internal error messages and stack traces are not included in the response.
 
 ## Health Check
 
@@ -117,7 +120,7 @@ Success response:
 }
 ```
 
-Duplicate user response:
+Duplicate user response (HTTP `409`):
 
 ```json
 {
@@ -151,7 +154,7 @@ Success response:
 }
 ```
 
-Invalid credentials response:
+Invalid credentials response (HTTP `401`):
 
 ```json
 {
@@ -192,7 +195,7 @@ Success response:
 }
 ```
 
-Missing token response:
+Missing token response (HTTP `401`):
 
 ```json
 {
@@ -201,12 +204,12 @@ Missing token response:
 }
 ```
 
-Invalid or expired token response:
+Invalid or expired token response (HTTP `401`):
 
 ```json
 {
   "success": false,
-  "message": "jwt expired"
+  "message": "Invalid or expired token"
 }
 ```
 

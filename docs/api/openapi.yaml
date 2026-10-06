@@ -45,13 +45,20 @@ paths:
               schema:
                 $ref: '#/components/schemas/RegisterSuccess'
         '400':
-          description: Invalid request or duplicate username.
+          description: Invalid request body or malformed JSON.
           content:
             application/json:
               schema:
-                oneOf:
-                  - $ref: '#/components/schemas/ValidationErrorResponse'
-                  - $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '409':
+          description: Username already exists.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                message: User already exists
         '500':
           $ref: '#/components/responses/ServerError'
   /api/v1/auth/login:
@@ -71,13 +78,20 @@ paths:
               schema:
                 $ref: '#/components/schemas/LoginSuccess'
         '400':
-          description: Invalid request or credentials.
+          description: Invalid request body or malformed JSON.
           content:
             application/json:
               schema:
-                oneOf:
-                  - $ref: '#/components/schemas/ValidationErrorResponse'
-                  - $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '401':
+          description: Invalid username or password.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                message: Invalid username or password
         '500':
           $ref: '#/components/responses/ServerError'
   /api/v1/auth/verify:
@@ -104,22 +118,28 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                missingToken:
+                  value:
+                    success: false
+                    message: Token is required
+                invalidToken:
+                  value:
+                    success: false
+                    message: Invalid or expired token
         '500':
           $ref: '#/components/responses/ServerError'
 components:
   responses:
     ServerError:
-      description: Unexpected server error. Malformed JSON returns a validation error with HTTP 400.
+      description: Unexpected server error with a safe message. Malformed JSON returns a validation error with HTTP 400.
       content:
         application/json:
           schema:
-            type: object
-            required:
-              - message
-            properties:
-              message:
-                type: string
-                example: Internal Server Error
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            message: Internal Server Error
   securitySchemes:
     bearerAuth:
       type: http
